@@ -38,9 +38,11 @@ project.json
 scripts/apply-prefix-fixes.sh
 scripts/build-patcher.py
 scripts/build-mciwave.sh
+scripts/build-release.py
 scripts/unpatch-prefix.sh
 scripts/update-checksums.sh
 scripts/validate-yaml.py
 scripts/verify-mciwave.sh
+scripts/verify-release.py
 scripts/verify-repo.sh
 tests/test_patcher.py

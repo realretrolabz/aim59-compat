@@ -7,6 +7,9 @@ Run against a fresh prefix created from the documented installer.
 - [ ] `aim59 fetch --source oldversion` downloads the pinned installer
 - [ ] downloaded installer SHA-256 matches the version manifest
 - [ ] `aim59 setup` completes from a fresh terminal-created prefix
+- [ ] terminal release archive extracts and runs as `./aim59 setup`
+- [ ] terminal release automatically selects its adjacent patched DLL
+- [ ] terminal release archive contains no AOL/AIM binaries
 - [ ] Lutris downloads both project assets from the versioned GitHub Release
 - [ ] Lutris delegates successfully to `setup --source oldversion`
 

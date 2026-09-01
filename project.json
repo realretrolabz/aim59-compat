@@ -1,6 +1,7 @@
 {
   "name": "aim59-compat",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "license": "MIT",
   "supported": {
     "aim": "5.9.3861",
     "wine": "9.0",
@@ -15,7 +16,8 @@
   "patcher": {
     "entrypoint": "aim59",
     "manifest": "manifests/aim-5.9.3861.json",
-    "release_artifact": "dist/aim59-patcher.pyz",
+    "release_artifact": "dist/aim59-compat-0.1.1-linux.tar.gz",
+    "lutris_engine_artifact": "dist/aim59-patcher.pyz",
     "installer_sources": [
       "local",
       "url",

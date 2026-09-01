@@ -1,6 +1,20 @@
 # Installation
 
-## Terminal patcher
+## Terminal release archive
+
+The primary terminal distribution contains the patcher and required patched
+Wine DLL together:
+
+```bash
+tar -xzf aim59-compat-0.1.1-linux.tar.gz
+cd aim59-compat-0.1.1
+./aim59 setup
+```
+
+The adjacent DLL is selected automatically. The patcher then offers the
+verified OldVersion source, a local installer, or a user-provided direct URL.
+
+## Repository checkout
 
 Requirements are Python 3.10 or newer, system Wine 9.0 with 32-bit support,
 Winetricks, and `cabextract`.

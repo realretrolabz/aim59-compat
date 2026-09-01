@@ -43,6 +43,6 @@ The repository includes `.vscode/tasks.json` with tasks for:
 - Verify repository
 - Verify published DLL
 - Build patched mciwave
-- Build terminal patcher
+- Build release artifacts
 
 Use **Terminal -> Run Task**.

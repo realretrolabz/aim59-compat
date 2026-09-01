@@ -30,6 +30,12 @@ def default_cache() -> Path:
 
 
 def default_dll() -> Path:
+    adjacent = (
+        Path(sys.argv[0]).expanduser().resolve().parent
+        / "mciwave-wine9-x86-aim.dll"
+    )
+    if adjacent.is_file():
+        return adjacent
     return repository_root() / "binaries/mciwave-wine9-x86-aim.dll"
 
 

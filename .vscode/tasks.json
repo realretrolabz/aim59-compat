@@ -25,9 +25,9 @@
       "problemMatcher": []
     },
     {
-      "label": "Build terminal patcher",
+      "label": "Build release artifacts",
       "type": "shell",
-      "command": "make patcher",
+      "command": "make release",
       "group": "build",
       "problemMatcher": []
     }

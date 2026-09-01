@@ -1,4 +1,4 @@
-.PHONY: verify verify-binary build patcher yaml checksums
+.PHONY: verify verify-binary build patcher release yaml checksums
 
 verify:
 	./scripts/verify-repo.sh
@@ -11,6 +11,10 @@ build:
 
 patcher:
 	python3 scripts/build-patcher.py
+
+release: patcher
+	python3 scripts/build-release.py
+	python3 scripts/verify-release.py
 
 yaml:
 	python3 scripts/validate-yaml.py

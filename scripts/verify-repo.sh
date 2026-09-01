@@ -16,6 +16,11 @@ echo "Checking Python patcher..."
 python3 -m compileall -q aim59_compat scripts tests
 python3 -m unittest discover -s tests
 
+echo "Checking release package..."
+python3 scripts/build-patcher.py
+python3 scripts/build-release.py
+python3 scripts/verify-release.py
+
 echo "Checking tracked published binary..."
 scripts/verify-mciwave.sh binaries/mciwave-wine9-x86-aim.dll --published
 

@@ -48,7 +48,33 @@ explicitly.
 The terminal patcher checks Wine's version before creating or changing the
 prefix. Consult [INSTALL.md](docs/INSTALL.md) for the manual known-good recipe.
 
-## Quick start
+## Choose an installation path
+
+### 1. Terminal release
+
+Download `aim59-compat-0.1.1-linux.tar.gz` from the GitHub Release, then run:
+
+```bash
+tar -xzf aim59-compat-0.1.1-linux.tar.gz
+cd aim59-compat-0.1.1
+./aim59 setup
+```
+
+The bundle contains the terminal patcher and patched Wine DLL together, so no
+manual `--patched-dll` argument is required.
+
+### 2. Lutris
+
+Import `aim-5.9.3861.yml` from the GitHub Release or install it from a future
+Lutris.net listing. Lutris downloads the same canonical patcher engine and
+performs setup through its graphical workflow.
+
+### 3. Windows 10/11
+
+The future Windows backend is planned but is **not implemented or supported
+yet**.
+
+## Repository quick start
 
 From a repository checkout, start the guided installer:
 
@@ -318,8 +344,8 @@ creates the win32 prefix, installs `winxp` and `mfc40`, runs AIM's installer,
 and applies the compatibility changes. The YAML does not duplicate that
 workflow.
 
-The YAML downloads two project-owned assets from the versioned `v0.1.0`
-GitHub Release:
+The YAML downloads two project-owned implementation assets from the versioned
+`v0.1.1` GitHub Release:
 
 - `aim59-patcher.pyz`
 - `mciwave-wine9-x86-aim.dll`
@@ -328,15 +354,14 @@ Neither release asset contains AIM. During installation, the downloaded
 patcher fetches AIM directly from OldVersion into Lutris's temporary installer
 cache. See [lutris/README.md](lutris/README.md) for details.
 
-## Using the release patcher
+## Using the loose patcher assets
 
-The release `.pyz` contains the Python engine and version manifest, but not
-AIM or the patched Wine DLL. Place the two project release assets together and
-run:
+The `.pyz` is published separately because Lutris consumes it. Terminal users
+should normally download the complete Linux archive above. To use the loose
+assets directly, place the `.pyz` and DLL together and run:
 
 ```bash
-python3 aim59-patcher.pyz setup \
-  --patched-dll ./mciwave-wine9-x86-aim.dll
+python3 aim59-patcher.pyz setup
 ```
 
 Lutris passes this DLL path automatically.
@@ -349,20 +374,24 @@ Run the repository validation suite:
 make verify
 ```
 
-It checks shell syntax, both Lutris YAML definitions, Python patcher tests,
-the published PE32 DLL structure and marker, checksums, publishable Windows
-binaries, and diff whitespace.
+It checks shell syntax, the Lutris YAML, Python patcher tests, the terminal
+release archive, the published PE32 DLL structure and marker, checksums,
+publishable Windows binaries, and diff whitespace.
 
-Build the self-contained patcher artifact:
+Build and verify all release artifacts:
 
 ```bash
-make patcher
+make release
 ```
 
 Output:
 
 ```text
+dist/aim59-compat-0.1.1-linux.tar.gz
 dist/aim59-patcher.pyz
+dist/mciwave-wine9-x86-aim.dll
+dist/aim-5.9.3861.yml
+dist/SHA256SUMS
 ```
 
 Rebuild the Wine 9.0 component from source:

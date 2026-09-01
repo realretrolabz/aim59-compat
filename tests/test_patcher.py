@@ -4,9 +4,10 @@ import hashlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from aim59_compat.backends.wine import WineBackend
-from aim59_compat.cli import verify_installer
+from aim59_compat.cli import default_dll, verify_installer
 from aim59_compat.download import DownloadError, _OldVersionFormParser, download_direct
 from aim59_compat.manifest import load_manifest
 
@@ -46,6 +47,18 @@ class InstallerVerificationTests(unittest.TestCase):
             self.assertEqual(
                 verify_installer(installer, manifest, allow_unverified=False), digest
             )
+
+
+class ReleaseLayoutTests(unittest.TestCase):
+    def test_adjacent_release_dll_is_selected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            launcher = root / "aim59"
+            dll = root / "mciwave-wine9-x86-aim.dll"
+            launcher.touch()
+            dll.touch()
+            with patch("sys.argv", [str(launcher)]):
+                self.assertEqual(default_dll(), dll)
 
 
 class SystemIniTests(unittest.TestCase):

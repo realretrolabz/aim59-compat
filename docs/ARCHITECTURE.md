@@ -59,13 +59,20 @@ The system Wine installation is never modified.
 
 ## Distribution adapters
 
+The terminal release archive is the primary standalone distribution. It
+packages an executable copy of the zip application beside the patched DLL so
+`./aim59 setup` works without assembly or extra path arguments. It also
+includes checksums, licenses, documentation, and the Wine source/build
+materials required for the modified DLL.
+
 The Lutris YAML downloads `aim59-patcher.pyz` and the patched Wine DLL from a
 version-pinned GitHub Release. It uses Lutris file aliases to call `aim59
 setup --source oldversion`; the canonical engine acquires and verifies AIM,
 creates the prefix, runs the installer, and applies the Wine backend.
 
 `scripts/build-patcher.py` packages the Python engine and manifest into the
-self-contained zip application. It does not contain AIM.
+self-contained zip application used by both the terminal archive and Lutris.
+It does not contain AIM.
 
 Future Windows 10/11 support should be implemented as a separate backend. It
 may share acquisition, manifests, verification, state, and terminal UI, but it

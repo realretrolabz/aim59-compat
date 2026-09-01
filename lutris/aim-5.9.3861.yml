@@ -13,10 +13,10 @@ script:
 
   files:
   - aim59_patcher:
-      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.0/aim59-patcher.pyz
+      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.1/aim59-patcher.pyz
       filename: aim59-patcher.pyz
   - mciwave_patch:
-      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.0/mciwave-wine9-x86-aim.dll
+      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.1/mciwave-wine9-x86-aim.dll
       filename: mciwave-wine9-x86-aim.dll
       checksum: 'sha256:23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0'
 
