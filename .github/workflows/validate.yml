@@ -1,0 +1,27 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install validation tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck binutils file python3-yaml
+
+    - name: ShellCheck
+      run: shellcheck scripts/*.sh
+
+    - name: Repository validation
+      run: make verify

@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Verify repository",
+      "type": "shell",
+      "command": "make verify",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Verify published DLL",
+      "type": "shell",
+      "command": "make verify-binary",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build patched mciwave",
+      "type": "shell",
+      "command": "make build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build terminal patcher",
+      "type": "shell",
+      "command": "make patcher",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "aim-5.9.3861",
+  "name": "AOL Instant Messenger",
+  "version": "5.9.3861",
+  "installer": {
+    "filename": "aim593861.exe",
+    "size": 8715352,
+    "sha256": [
+      "018438bf22672ee119e864d78f838a538ed067bb76296957a00e0c1080979af1"
+    ],
+    "sources": {
+      "oldversion": {
+        "name": "OldVersion.com",
+        "kind": "oldversion-form",
+        "page_url": "https://www.oldversion.com/software/aol-instant-messenger/aol-instant-messenger-5-9-3861/"
+      }
+    }
+  },
+  "wine": {
+    "version_prefix": "wine-9.0",
+    "arch": "win32",
+    "windows_mode": "winxp",
+    "winetricks": [
+      "winxp",
+      "mfc40"
+    ],
+    "aim_directory": "drive_c/Program Files/AIM",
+    "executable": "aim.exe"
+  },
+  "mciwave": {
+    "filename": "mciwave-wine9-x86-aim.dll",
+    "sha256": "23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0"
+  }
+}

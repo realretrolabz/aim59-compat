@@ -1,0 +1,13 @@
+diff --git a/dlls/mciwave/mciwave.c b/dlls/mciwave/mciwave.c
+--- a/dlls/mciwave/mciwave.c
++++ b/dlls/mciwave/mciwave.c
+@@ -1523,9 +1523,6 @@ static LRESULT WAVE_mciOpen(MCIDEVICEID wDevID, DWORD dwFlags, LPMCI_WAVE_OPEN_
+     if (lpOpenParms == NULL) return MCIERR_NULL_PARAMETER_BLOCK;
+     if (wmw == NULL) return MCIERR_INVALID_DEVICE_ID;
+
+-    if (dwFlags & MCI_OPEN_SHAREABLE)
+-        return MCIERR_UNSUPPORTED_FUNCTION;
+-
+     if (wmw->nUseCount > 0) {
+         /* The driver is already opened on this channel
+          * Wave driver cannot be shared

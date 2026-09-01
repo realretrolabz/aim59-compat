@@ -1,0 +1,26 @@
+{
+  "name": "aim59-compat",
+  "version": "0.1.0",
+  "supported": {
+    "aim": "5.9.3861",
+    "wine": "9.0",
+    "wine_arch": "win32",
+    "windows_mode": "winxp"
+  },
+  "published_mciwave": {
+    "path": "binaries/mciwave-wine9-x86-aim.dll",
+    "sha256": "23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0",
+    "license": "LGPL-2.1-or-later"
+  },
+  "patcher": {
+    "entrypoint": "aim59",
+    "manifest": "manifests/aim-5.9.3861.json",
+    "release_artifact": "dist/aim59-patcher.pyz",
+    "installer_sources": [
+      "local",
+      "url",
+      "oldversion"
+    ]
+  },
+  "aim_binaries_included": false
+}

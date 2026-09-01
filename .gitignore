@@ -1,0 +1,25 @@
+# Build output / caches
+.build/
+.cache/
+dist/
+*.tar.xz
+*.log
+
+# User-provided proprietary AIM files
+aim593861.exe
+aim*.exe
+AIM/
+*.ocm
+
+# Local Reference / Test Material
+.local-reference/
+
+# IDE / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
