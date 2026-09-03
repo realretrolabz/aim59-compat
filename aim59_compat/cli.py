@@ -6,7 +6,20 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
-from .backends.wine import BackendError, WineBackend
+from .backends import (
+    DEFAULT_BUILD_TARGET,
+    BackendTarget,
+    WineBackendOptions,
+    create_backend,
+    create_wine_backend,
+    select_backend_target,
+)
+from .backends.base import (
+    BackendError,
+    CompatibilityBackend,
+    SetupPresentation,
+    WinePrefixBackend,
+)
 from .download import (
     DownloadError,
     download_direct,
@@ -15,6 +28,7 @@ from .download import (
     terminal_progress,
 )
 from .manifest import ManifestError, load_manifest, repository_root
+from .orchestration import run_doctor, run_launch, run_rollback, run_setup
 
 
 class PatcherError(RuntimeError):
@@ -152,11 +166,10 @@ def acquire_installer(args: argparse.Namespace, manifest: dict[str, Any]) -> Pat
     return installer
 
 
-def backend_from_args(args: argparse.Namespace, manifest: dict[str, Any]) -> WineBackend:
+def wine_options_from_args(args: argparse.Namespace) -> WineBackendOptions:
     prefix = path_value(args.prefix) if args.prefix else default_prefix()
     patched_dll = path_value(args.patched_dll) if args.patched_dll else default_dll()
-    return WineBackend(
-        manifest,
+    return WineBackendOptions(
         prefix,
         patched_dll,
         wine=args.wine,
@@ -167,9 +180,14 @@ def backend_from_args(args: argparse.Namespace, manifest: dict[str, Any]) -> Win
     )
 
 
-def confirm_setup(backend: WineBackend, *, assume_yes: bool, non_interactive: bool) -> None:
-    print(f"Wine prefix: {backend.prefix}")
-    print(f"Patched DLL: {backend.patched_dll}")
+def confirm_setup(
+    presentation: SetupPresentation,
+    *,
+    assume_yes: bool,
+    non_interactive: bool,
+) -> None:
+    for line in presentation.confirmation_lines:
+        print(line)
     if assume_yes or non_interactive:
         return
     answer = input("Continue with setup? [Y/n]: ").strip().lower()
@@ -177,54 +195,60 @@ def confirm_setup(backend: WineBackend, *, assume_yes: bool, non_interactive: bo
         raise PatcherError("Setup cancelled")
 
 
-def command_setup(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
+def command_setup(
+    args: argparse.Namespace,
+    manifest: dict[str, Any],
+    backend: CompatibilityBackend,
+) -> int:
     print_banner(manifest)
-    backend = backend_from_args(args, manifest)
-    backend.check_tools(require_winetricks=True, require_wineboot=True)
-    backend.verify_patched_dll()
-    installer = acquire_installer(args, manifest)
-    confirm_setup(backend, assume_yes=args.yes, non_interactive=args.non_interactive)
-    backend.create_prefix()
-    backend.install_prerequisites()
-    backend.install_aim(installer)
-    backend.apply()
-    print()
-    print("✓ AIM compatibility setup completed")
-    print(f"  Run: aim59 launch --prefix {backend.prefix}")
+    run_setup(
+        backend,
+        acquire_installer=lambda: acquire_installer(args, manifest),
+        confirm=lambda presentation: confirm_setup(
+            presentation,
+            assume_yes=args.yes,
+            non_interactive=args.non_interactive,
+        ),
+    )
     return 0
 
 
-def command_patch_prefix(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
+def command_patch_prefix(
+    args: argparse.Namespace,
+    manifest: dict[str, Any],
+    backend: WinePrefixBackend,
+) -> int:
     print_banner(manifest)
-    backend = backend_from_args(args, manifest)
     backend.check_tools(require_winetricks=False)
     backend.apply()
     print("✓ Existing AIM prefix patched")
     return 0
 
 
-def command_doctor(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
+def command_doctor(
+    args: argparse.Namespace,
+    manifest: dict[str, Any],
+    backend: CompatibilityBackend,
+) -> int:
     print_banner(manifest)
-    backend = backend_from_args(args, manifest)
-    failed = False
-    for passed, message in backend.doctor():
-        print(("✓" if passed else "✗") + " " + message)
-        failed = failed or not passed
-    return 1 if failed else 0
+    return run_doctor(backend)
 
 
-def command_launch(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
-    backend = backend_from_args(args, manifest)
-    backend.check_tools(require_winetricks=False)
-    backend.launch()
+def command_launch(
+    args: argparse.Namespace,
+    manifest: dict[str, Any],
+    backend: CompatibilityBackend,
+) -> int:
+    run_launch(backend)
     return 0
 
 
-def command_rollback(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
-    backend = backend_from_args(args, manifest)
-    backend.check_tools(require_winetricks=False, enforce_version=False)
-    backend.rollback()
-    print("✓ Compatibility rollback completed")
+def command_rollback(
+    args: argparse.Namespace,
+    manifest: dict[str, Any],
+    backend: CompatibilityBackend,
+) -> int:
+    run_rollback(backend)
     return 0
 
 
@@ -282,7 +306,7 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--yes", action="store_true", help="Accept the setup confirmation")
     setup.add_argument("--non-interactive", action="store_true", help="Disable prompts")
     add_backend_arguments(setup)
-    setup.set_defaults(handler=command_setup)
+    setup.set_defaults(handler=command_setup, backend_scope="shared")
 
     fetch = subparsers.add_parser("fetch", help="Acquire and verify the AIM installer")
     fetch_source = fetch.add_mutually_exclusive_group(required=True)
@@ -300,19 +324,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     patch_prefix.add_argument("--non-interactive", action="store_true", help=argparse.SUPPRESS)
     add_backend_arguments(patch_prefix)
-    patch_prefix.set_defaults(handler=command_patch_prefix)
+    patch_prefix.set_defaults(handler=command_patch_prefix, backend_scope="wine")
 
     doctor = subparsers.add_parser("doctor", help="Check an AIM Wine prefix")
     add_backend_arguments(doctor)
-    doctor.set_defaults(handler=command_doctor)
+    doctor.set_defaults(handler=command_doctor, backend_scope="shared")
 
     launch = subparsers.add_parser("launch", help="Launch AIM")
     add_backend_arguments(launch)
-    launch.set_defaults(handler=command_launch)
+    launch.set_defaults(handler=command_launch, backend_scope="shared")
 
     rollback = subparsers.add_parser("rollback", help="Restore prefix-local compatibility changes")
     add_backend_arguments(rollback)
-    rollback.set_defaults(handler=command_rollback)
+    rollback.set_defaults(handler=command_rollback, backend_scope="shared")
 
     sources = subparsers.add_parser("sources", help="List known third-party installer sources")
     sources.set_defaults(handler=command_sources)
@@ -324,11 +348,41 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(
+    argv: list[str] | None = None,
+    *,
+    build_target: BackendTarget | str = DEFAULT_BUILD_TARGET,
+    host_platform: str | None = None,
+) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
         manifest = load_manifest(args.manifest)
+        backend_scope = getattr(args, "backend_scope", None)
+        if backend_scope == "shared":
+            target = select_backend_target(
+                build_target,
+                host_platform=host_platform,
+            )
+            backend = create_backend(
+                manifest,
+                target,
+                wine_options=(
+                    wine_options_from_args(args)
+                    if target is BackendTarget.WINE
+                    else None
+                ),
+            )
+            return int(args.handler(args, manifest, backend))
+        if backend_scope == "wine":
+            target = select_backend_target(
+                build_target,
+                host_platform=host_platform,
+            )
+            if target is not BackendTarget.WINE:
+                raise BackendError("patch-prefix is available only in the Wine build")
+            backend = create_wine_backend(manifest, wine_options_from_args(args))
+            return int(args.handler(args, manifest, backend))
         return int(args.handler(args, manifest))
     except (BackendError, DownloadError, ManifestError, PatcherError) as exc:
         print(f"error: {exc}", file=sys.stderr)

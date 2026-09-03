@@ -9,10 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ..download import sha256_file
-
-
-class BackendError(RuntimeError):
-    pass
+from .base import BackendError, SetupPresentation
 
 
 class WineBackend:
@@ -48,6 +45,16 @@ class WineBackend:
     @property
     def state_dir(self) -> Path:
         return self.prefix / ".aim59-compat"
+
+    @property
+    def setup_presentation(self) -> SetupPresentation:
+        return SetupPresentation(
+            confirmation_lines=(
+                f"Wine prefix: {self.prefix}",
+                f"Patched DLL: {self.patched_dll}",
+            ),
+            launch_command=f"aim59 launch --prefix {self.prefix}",
+        )
 
     @property
     def env(self) -> dict[str, str]:
@@ -151,6 +158,16 @@ class WineBackend:
         self.stop_wine()
         if not self.dry_run:
             self._require_aim_files()
+
+    def prepare_setup(self) -> None:
+        self.check_tools(require_winetricks=True, require_wineboot=True)
+        self.verify_patched_dll()
+
+    def setup(self, installer: Path) -> None:
+        self.create_prefix()
+        self.install_prerequisites()
+        self.install_aim(installer)
+        self.apply()
 
     def stop_wine(self) -> None:
         self._run([self.wineserver, "-k"], check=False)
@@ -308,6 +325,7 @@ class WineBackend:
         return checks
 
     def launch(self) -> None:
+        self.check_tools(require_winetricks=False)
         executable = self.aim_dir / self.manifest["wine"]["executable"]
         if not executable.is_file():
             raise BackendError(f"AIM executable not found: {executable}")
@@ -318,6 +336,7 @@ class WineBackend:
         subprocess.Popen([self.wine, str(executable)], env=self.env, cwd=self.aim_dir)
 
     def rollback(self) -> None:
+        self.check_tools(require_winetricks=False, enforce_version=False)
         if not (self.prefix / "system.reg").is_file():
             raise BackendError(f"Wine prefix not found: {self.prefix}")
         print(f"→ Rolling back AIM compatibility changes in {self.prefix}")

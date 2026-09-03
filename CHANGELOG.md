@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.1.1 - Unreleased
+## Unreleased
+
+- Separate shared setup, doctor, launch, and rollback orchestration from the
+  Wine backend without changing the Linux or Lutris command surface.
+- Add internal build-target/host validation and reject platform mismatches.
+
+## 0.1.1 - 2026-08-31
 
 - Add a first-class terminal release archive runnable as `./aim59 setup`.
 - Discover the release-bundled patched DLL beside the terminal launcher.

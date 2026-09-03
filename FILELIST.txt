@@ -15,10 +15,12 @@ aim59
 aim59_compat/__init__.py
 aim59_compat/__main__.py
 aim59_compat/backends/__init__.py
+aim59_compat/backends/base.py
 aim59_compat/backends/wine.py
 aim59_compat/cli.py
 aim59_compat/download.py
 aim59_compat/manifest.py
+aim59_compat/orchestration.py
 binaries/mciwave-wine9-x86-aim.dll
 checksums/SHA256SUMS
 docs/ARCHITECTURE.md
@@ -30,6 +32,8 @@ docs/RELEASE.md
 docs/TECHNICAL.md
 docs/TESTING.md
 docs/TROUBLESHOOTING.md
+docs/WINDOWS_HANDOFF.md
+docs/WINDOWS_ROADMAP.md
 lutris/README.md
 lutris/aim-5.9.3861.yml
 manifests/aim-5.9.3861.json

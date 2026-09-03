@@ -69,10 +69,15 @@ Import `aim-5.9.3861.yml` from the GitHub Release or install it from a future
 Lutris.net listing. Lutris downloads the same canonical patcher engine and
 performs setup through its graphical workflow.
 
-### 3. Windows 10/11
+### 3. Native Windows
 
-The future Windows backend is planned but is **not implemented or supported
-yet**.
+The future Windows 11 backend is planned but is **not implemented or supported
+yet**. The preferred result is a no-install workflow in which AIM and its
+launcher create no AIM/project-specific host registry entries. If that proves
+infeasible, the accepted fallback will modify a normal AIM installation
+performed by the user. Windows 10 support requires separate validation. The
+staged feasibility and validation plan is documented in
+[WINDOWS_ROADMAP.md](docs/WINDOWS_ROADMAP.md).
 
 ## Repository quick start
 
@@ -415,7 +420,7 @@ Build dependencies and the release process are documented in
 | Path | Purpose |
 | --- | --- |
 | `aim59` | Repository CLI entry point |
-| `aim59_compat/` | Canonical Python engine and Wine backend |
+| `aim59_compat/` | Shared orchestration, canonical Python engine, and Wine backend |
 | `manifests/` | Supported-version and installer identities |
 | `binaries/` | The one permitted prebuilt patched Wine DLL |
 | `patches/` | Corresponding Wine 9.0 source patch |
@@ -425,8 +430,9 @@ Build dependencies and the release process are documented in
 | `docs/` | Architecture, installation, testing, and troubleshooting |
 
 The architecture and future backend boundary are described in
-[ARCHITECTURE.md](docs/ARCHITECTURE.md). Windows 10/11 support is planned as a
-separate backend and is not currently claimed or implemented.
+[ARCHITECTURE.md](docs/ARCHITECTURE.md). Native Windows support is planned as
+a separate backend and is not currently claimed or implemented. Windows 11 is
+the initial target; Windows 10 requires its own validation.
 
 ## Licensing and third parties
 

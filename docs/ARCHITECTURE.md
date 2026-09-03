@@ -9,13 +9,50 @@ line.
 Version manifest + installer source
                  |
                  v
-       AIM 5.9 patcher CLI
+      shared acquisition + verification
+                 |
+                 v
+       shared command orchestration
+                 |
+                 v
+       build-target/host selector
           /             \
-  Wine backend       future Windows backend
+  Wine backend       future native Windows backend
        |
        v
 prefix files + registry + recorded state
 ```
+
+The Windows backend has two possible delivery modes. The preferred mode is a
+relocatable directory that requires no installation and creates no AIM- or
+project-specific host registry entries. If Windows 11 testing proves that
+strict portability cannot support the required AIM experience, the accepted
+fallback discovers and modifies a normal AIM installation performed by the
+user. Only the first mode may be called portable. The feasibility gate and
+required features are defined in
+[`WINDOWS_ROADMAP.md`](WINDOWS_ROADMAP.md).
+
+## Backend boundary and build targets
+
+`aim59_compat/orchestration.py` owns the platform-neutral sequencing for
+setup, doctor, launch, and rollback. It depends on the small
+`CompatibilityBackend` protocol in `aim59_compat/backends/base.py`. Setup
+keeps backend preflight ahead of installer acquisition, then passes the
+verified external installer path to the selected backend. Installer download
+and identity verification do not depend on a backend.
+
+`aim59_compat/backends/__init__.py` selects a backend from the build target and
+rejects a host/target mismatch before constructing it. The current `aim59`
+source and release artifact have a fixed `wine` target and accept the existing
+Wine options; there is intentionally no routine user-facing backend switch.
+The reserved `windows` target is recognized on a Windows host but reports that
+its backend is not implemented or supported. It performs no Windows
+compatibility operation.
+
+`patch-prefix` remains outside the shared backend contract. It is an explicit
+Wine-prefix adapter and is rejected outside the Wine build. This keeps the
+future native backend from acquiring artificial prefix, Winetricks, patched
+DLL, or Wine registry methods.
 
 ## Version manifest
 
@@ -30,9 +67,13 @@ when the pinned SHA-256 matches.
 
 ## Commands
 
-`aim59 setup` owns the complete terminal workflow: acquire and verify the
-installer, validate Wine 9.0, create a win32 prefix, install `winxp` and
+`aim59 setup` owns the complete terminal workflow: validate Wine 9.0, acquire
+and verify the installer, create a win32 prefix, install `winxp` and
 `mfc40`, run the installer, and invoke the Wine compatibility backend.
+
+The existing ordering is preserved: Wine command/version and patched-DLL
+preflight occurs before acquisition, and the selected backend receives the
+installer only after acquisition and checksum verification succeeds.
 
 `aim59 patch-prefix` applies only the compatibility operations to an existing
 AIM prefix. This is the adapter boundary used by the legacy
@@ -74,6 +115,7 @@ creates the prefix, runs the installer, and applies the Wine backend.
 self-contained zip application used by both the terminal archive and Lutris.
 It does not contain AIM.
 
-Future Windows 10/11 support should be implemented as a separate backend. It
+Future native Windows support should be implemented as a separate backend. It
 may share acquisition, manifests, verification, state, and terminal UI, but it
 must not inherit Wine-specific fixes or support claims without testing.
+Windows 11 is the initial target; Windows 10 requires its own validation.
