@@ -208,9 +208,12 @@ Recommended prompt for the next thread: Use the Stage 2 next-thread prompt in
 ## Suggested prompt for the next thread
 
 > Read the project instructions and Stage 2 of
-> `docs/WINDOWS_ROADMAP.md`. Create only the Windows discovery kit and its
-> operator instructions. The kit must be safe to author on Linux and execute
-> on Windows 11, write all captured data to an explicit external directory,
-> distinguish 32-bit registry state, and avoid copying AIM binaries into the
-> repository. Do not implement Windows compatibility fixes. Validate the
-> repository and hand off the exact Windows test procedure for Stage 3.
+> `docs/WINDOWS_ROADMAP.md`. First present a concrete Stage 2 proposal covering
+> files, behavior, safety boundaries, tests, and deliverables, then stop and
+> wait for explicit approval before editing anything. After approval, create
+> only the Windows discovery kit and its operator instructions. The kit must
+> be safe to author on Linux and execute on Windows 11, write all captured data
+> to an explicit external directory, distinguish 32-bit registry state, and
+> avoid copying AIM binaries into the repository. Do not implement Windows
+> compatibility fixes. Validate the repository and hand off the exact Windows
+> test procedure for Stage 3.
