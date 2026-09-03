@@ -160,8 +160,9 @@ proprietary binary entered the repository or Git history.
 
 ```text
 Stage completed: Stage 0 - scope, definitions, and roadmap
-Repository commit or working-tree state: Uncommitted working tree; existing
-  release-document changes were preserved
+Approval status: Approved by the project owner on 2026-09-02
+Repository commit or working-tree state: Committed with the Stage 1 change set
+  in ba86ede
 Tests run and results: make verify passed on 2026-09-02
 Windows environment, if used: None
 External evidence location: None
@@ -182,8 +183,9 @@ Recommended prompt for the next thread: See below
 
 ```text
 Stage completed: Stage 1 - backend architecture without behavior changes
-Repository commit or working-tree state: Uncommitted working tree; existing
-  Stage 0 and release-document changes were preserved
+Approval status: Approved by the project owner on 2026-09-02
+Repository commit or working-tree state: Implementation committed in ba86ede;
+  this approval record is a documentation-only follow-up
 Tests run and results: make verify passed on 2026-09-02; 20 Python tests
   passed, including build-target selection, mismatch rejection, shared setup
   sequencing, Wine-specific patch-prefix dispatch, and acquisition isolation
