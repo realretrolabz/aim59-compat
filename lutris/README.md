@@ -8,10 +8,10 @@ There is one user-facing installer definition:
 lutris -i lutris/aim-5.9.3861.yml
 ```
 
-It downloads `aim59-patcher.pyz` and the patched Wine DLL from the project's
-versioned GitHub Release. Installer commands refer to Lutris's
-`$aim59_patcher` and `$mciwave_patch` file aliases, which work on Lutris
-0.5.14 and newer.
+It downloads the complete Linux bundle from the project's versioned GitHub
+Release using the `$aim59_bundle` file alias, extracts the patcher and both
+versioned DLLs into Lutris's temporary cache, and runs the adjacent patcher.
+This works on Lutris 0.5.14 and newer without relying on `$SCRIPTDIR`.
 
 Lutris calls the checkout's canonical `aim59 setup --source oldversion`
 engine. It downloads the pinned AIM installer from the unaffiliated
@@ -25,7 +25,7 @@ unaffiliated OldVersion archive and verifies the pinned SHA-256.
 The installer intentionally uses:
 
 - system Wine
-- Wine 9.0 check
+- Wine 9.0 or Wine 10.0 check with version-matched DLL selection
 - win32 prefix
 - Winetricks `winxp mfc40`
 - `regsvr32` for `sb.dll`
@@ -38,8 +38,9 @@ The YAML must not duplicate acquisition, prefix creation, installation, or
 the AIM-specific file and registry operations. Those belong to `aim59 setup`
 so terminal and Lutris installs remain identical.
 
-The loose `.pyz` and DLL are Lutris implementation assets. Terminal users get
-the first-class `aim59-compat-0.1.1-linux.tar.gz` distribution instead.
+The complete `aim59-compat-0.1.2-linux.tar.gz` archive is used by both Lutris
+and terminal users. Loose `.pyz` and DLL release assets remain available for
+manual integration.
 
-Keep this release-pinned YAML on Wine 9.0 until a release contains both
-versioned DLLs and the Wine 10 repeated-sound runtime matrix is complete.
+Wine 9.0 remains runtime validated. Keep Wine 10.0 labeled as a test candidate
+until its repeated-sound runtime matrix is complete.

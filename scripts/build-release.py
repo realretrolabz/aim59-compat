@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import gzip
 import hashlib
 import shutil
 import tarfile
@@ -78,8 +79,15 @@ with tempfile.TemporaryDirectory(prefix="aim59-release-") as temporary:
         encoding="utf-8",
     )
 
-    with tarfile.open(archive, "w:gz") as output:
-        output.add(bundle, arcname=bundle.name, filter=normalized_tar_info)
+    with archive.open("wb") as raw_output:
+        with gzip.GzipFile(
+            filename="",
+            mode="wb",
+            fileobj=raw_output,
+            mtime=0,
+        ) as compressed_output:
+            with tarfile.open(fileobj=compressed_output, mode="w") as output:
+                output.add(bundle, arcname=bundle.name, filter=normalized_tar_info)
 
 release_files = (patcher, *release_dlls, release_yaml, archive)
 (dist / "SHA256SUMS").write_text(

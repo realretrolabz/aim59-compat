@@ -1,7 +1,7 @@
 name: AOL Instant Messenger 5.9
 game_slug: aim-5-9
-version: 5.9.3861 Wine 9.0 compatibility
-slug: aim-5-9-3861-wine9-compat
+version: 5.9.3861 Wine 9.0 compatibility + Wine 10.0 test
+slug: aim-5-9-3861-wine-compat
 runner: wine
 
 script:
@@ -12,25 +12,24 @@ script:
     working_dir: '$GAMEDIR/prefix/drive_c/Program Files/AIM'
 
   files:
-  - aim59_patcher:
-      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.1/aim59-patcher.pyz
-      filename: aim59-patcher.pyz
-  - mciwave_patch:
-      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.1/mciwave-wine9-x86-aim.dll
-      filename: mciwave-wine9-x86-aim.dll
-      checksum: 'sha256:23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0'
+  - aim59_bundle:
+      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.2/aim59-compat-0.1.2-linux.tar.gz
+      filename: aim59-compat-0.1.2-linux.tar.gz
+      checksum: 'sha256:fe2eb80203c6472acfc9e1599b7867818378dec54e3db77c62230b1d277ef611'
 
   installer:
+  - extract:
+      file: aim59_bundle
+      dst: $CACHE
   - execute:
       command: |
         set -e
-        python3 -u "$aim59_patcher" setup \
+        python3 -u "$CACHE/aim59" setup \
           --source oldversion \
           --non-interactive \
           --yes \
           --cache-dir "$CACHE/aim59-installer" \
-          --prefix "$GAMEDIR/prefix" \
-          --patched-dll "$mciwave_patch"
+          --prefix "$GAMEDIR/prefix"
       disable_runtime: true
 
   wine:

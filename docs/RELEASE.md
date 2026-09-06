@@ -16,10 +16,10 @@ match the release tag.
 
 ## Release assets
 
-For v0.1.1, upload the complete payload produced by `make release`:
+For v0.1.2, upload the complete payload produced by `make release`:
 
 ```text
-aim59-compat-0.1.1-linux.tar.gz
+aim59-compat-0.1.2-linux.tar.gz
 aim59-patcher.pyz
 mciwave-wine9-x86-aim.dll
 mciwave-wine10-x86-aim.dll
@@ -27,9 +27,9 @@ aim-5.9.3861.yml
 SHA256SUMS
 ```
 
-The archive is the user-facing terminal distribution. The `.pyz` and loose
-DLLs are retained as frontend implementation assets. The current Lutris YAML
-uses the Wine 9 DLL only. Do not publish AIM itself.
+The archive is the user-facing terminal distribution and the asset consumed by
+the Lutris YAML. The `.pyz` and loose DLLs are retained as implementation
+assets. Do not publish AIM itself.
 
 The GitHub Release should also link to the repository source at the matching
 tag so the modified Wine binary's corresponding patch/build instructions are
@@ -40,8 +40,8 @@ readily available.
 Example:
 
 ```bash
-git tag -a v0.1.1 -m "AIM 5.9 Wine compatibility v0.1.1"
-git push origin v0.1.1
+git tag -a v0.1.2 -m "AIM 5.9 Wine compatibility v0.1.2"
+git push origin v0.1.2
 ```
 
 Create the release only after the tag and release assets have been reviewed.
@@ -49,13 +49,13 @@ Create the release only after the tag and release assets have been reviewed.
 ## GitHub CLI example
 
 ```bash
-gh release create v0.1.1 \
-  dist/aim59-compat-0.1.1-linux.tar.gz \
+gh release create v0.1.2 \
+  dist/aim59-compat-0.1.2-linux.tar.gz \
   dist/aim59-patcher.pyz \
   dist/mciwave-wine9-x86-aim.dll \
   dist/mciwave-wine10-x86-aim.dll \
   dist/aim-5.9.3861.yml \
   dist/SHA256SUMS \
-  --title "AIM 5.9 Compatibility v0.1.1" \
+  --title "AIM 5.9 Compatibility v0.1.2" \
   --notes "Terminal patcher for AIM 5.9.3861 with versioned Wine DLLs."
 ```
