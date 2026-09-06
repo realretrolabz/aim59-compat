@@ -30,6 +30,10 @@ Wine source mirror, Wine 9.0 `mciwave.c`:
 
 https://github.com/wine-mirror/wine/blob/wine-9.0/dlls/mciwave/mciwave.c
 
+Wine source mirror, Wine 10.0 `mciwave.c`:
+
+https://github.com/wine-mirror/wine/blob/wine-10.0/dlls/mciwave/mciwave.c
+
 Wine project:
 
 https://gitlab.winehq.org/wine/wine
@@ -37,6 +41,8 @@ https://gitlab.winehq.org/wine/wine
 Wine source archives:
 
 https://dl.winehq.org/wine/source/9.0/
+
+https://dl.winehq.org/wine/source/10.0/
 
 ## Open OSCAR
 

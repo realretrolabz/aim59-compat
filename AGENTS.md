@@ -12,13 +12,14 @@ third-party URL and must verify known downloads against the pinned manifest.
 ## Supported target for v0.1.x
 
 - AIM: 5.9.3861
-- Wine: 9.0
+- Wine: 9.0 (runtime validated)
+- Wine: 10.0 (source/build validated; runtime validation pending)
 - Prefix architecture: win32
 - Wine Windows version: Windows XP
 - Runtime: `mfc40`
 - `sb.dll`: registered with `regsvr32`
 - `aimapi.dll`: renamed/disabled
-- Wine `mciwave.dll`: AIM-specific Wine 9.0 patch
+- Wine `mciwave.dll`: version-matched AIM-specific Wine 9.0 or 10.0 patch
 - `mciwave` override: native, then builtin
 - MCI and MCI32 WaveAudio mappings: `mciwave.dll`
 
@@ -29,7 +30,8 @@ Do not claim support for other Wine or AIM versions without explicit testing.
 AIM 5.9 opens notification WAV files through MCI `waveaudio` while passing
 `MCI_OPEN_SHAREABLE`.
 
-Wine 9.0's `dlls/mciwave/mciwave.c` rejects that flag before the first open.
+Wine 9.0 and 10.0's `dlls/mciwave/mciwave.c` reject that flag before the
+first open.
 The compatibility patch removes only that rejection. Wine's existing
 `nUseCount > 0` guard remains intact.
 
@@ -54,8 +56,8 @@ played one sound and then caused AIM to hang.
    - AIM installers
    - AOL DLL/OCM/resource files
    - extracted AIM installation directories
-2. The one prebuilt `.dll` intentionally tracked in `binaries/` is the
-   modified Wine `mciwave.dll`.
+2. The only prebuilt `.dll` files intentionally tracked in `binaries/` are
+   the version-matched modified Wine `mciwave.dll` files.
 3. Keep the Wine source patch and build instructions available whenever the
    modified Wine binary is distributed.
 4. Do not silently change the supported Wine version.
@@ -81,13 +83,14 @@ Before changing or replacing the published DLL, also run:
 
 ```bash
 scripts/verify-mciwave.sh binaries/mciwave-wine9-x86-aim.dll --published
+scripts/verify-mciwave.sh binaries/mciwave-wine10-x86-aim.dll --published
 ```
 
 For a rebuilt DLL:
 
 ```bash
-make build
-scripts/verify-mciwave.sh dist/mciwave-wine9-x86-aim.dll
+make build-wine10
+scripts/verify-mciwave.sh dist/mciwave-wine10-x86-aim.dll
 ```
 
 Review:

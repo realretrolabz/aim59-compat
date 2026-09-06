@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-EXPECTED_PUBLISHED_SHA="23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0"
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
     echo "Usage: $0 PATH_TO_MCIWAVE_DLL [--published]" >&2
@@ -10,6 +10,11 @@ fi
 
 DLL="$1"
 MODE="${2:-}"
+
+if [[ -n "$MODE" && "$MODE" != "--published" ]]; then
+    echo "Usage: $0 PATH_TO_MCIWAVE_DLL [--published]" >&2
+    exit 2
+fi
 
 [[ -f "$DLL" ]] || {
     echo "Not found: $DLL" >&2
@@ -55,9 +60,17 @@ done
 sha="$(sha256sum "$DLL" | awk '{print $1}')"
 echo "SHA256: $sha"
 
-if [[ "$MODE" == "--published" && "$sha" != "$EXPECTED_PUBLISHED_SHA" ]]; then
-    echo "FAIL: published binary checksum mismatch" >&2
-    exit 1
+if [[ "$MODE" == "--published" ]]; then
+    published_path="binaries/$(basename -- "$DLL")"
+    expected="$({ awk -v path="$published_path" '$2 == path { print $1 }' "$ROOT/checksums/SHA256SUMS"; } || true)"
+    if [[ -z "$expected" ]]; then
+        echo "FAIL: no published checksum for $published_path" >&2
+        exit 1
+    fi
+    if [[ "$sha" != "$expected" ]]; then
+        echo "FAIL: published binary checksum mismatch" >&2
+        exit 1
+    fi
 fi
 
 echo "OK: mciwave DLL structural checks passed."

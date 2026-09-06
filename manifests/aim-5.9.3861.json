@@ -18,7 +18,10 @@
     }
   },
   "wine": {
-    "version_prefix": "wine-9.0",
+    "version_prefixes": [
+      "wine-9.0",
+      "wine-10.0"
+    ],
     "arch": "win32",
     "windows_mode": "winxp",
     "winetricks": [
@@ -29,7 +32,15 @@
     "executable": "aim.exe"
   },
   "mciwave": {
-    "filename": "mciwave-wine9-x86-aim.dll",
-    "sha256": "23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0"
+    "variants": {
+      "wine-9.0": {
+        "filename": "mciwave-wine9-x86-aim.dll",
+        "sha256": "23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0"
+      },
+      "wine-10.0": {
+        "filename": "mciwave-wine10-x86-aim.dll",
+        "sha256": "17ba9b95d64fde4ad2d98abdbc623edaa7a66c6f3815221a16aa1f3d0fe30dd2"
+      }
+    }
   }
 }

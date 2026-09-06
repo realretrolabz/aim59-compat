@@ -2,8 +2,9 @@
 
 ## Terminal release archive
 
-The primary terminal distribution contains the patcher and required patched
-Wine DLL together:
+The primary terminal distribution contains the patcher and its versioned
+patched Wine DLLs together. The published v0.1.1 archive contains the Wine 9
+DLL; a bundle built from the current checkout also contains the Wine 10 candidate.
 
 ```bash
 tar -xzf aim59-compat-0.1.1-linux.tar.gz
@@ -11,19 +12,35 @@ cd aim59-compat-0.1.1
 ./aim59 setup
 ```
 
-The adjacent DLL is selected automatically. The patcher then offers the
+The matching adjacent DLL is selected automatically. The patcher then offers the
 verified OldVersion source, a local installer, or a user-provided direct URL.
 
 ## Repository checkout
 
-Requirements are Python 3.10 or newer, system Wine 9.0 with 32-bit support,
-Winetricks, and `cabextract`.
+Requirements are Python 3.10 or newer, system Wine 9.0 or 10.0 with 32-bit
+support, Winetricks, and `cabextract`.
+
+On Debian, enable the i386 architecture and install Wine's 32-bit runtime if
+`wine --version` reports that `wine32` is missing:
+
+```bash
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install wine32:i386
+```
 
 Start the guided setup:
 
 ```bash
 ./aim59 setup
 ```
+
+Successful setup installs an `AIM.desktop` entry under the user's XDG
+applications directory, replacing Wine's entry for the same AIM Start Menu
+shortcut if one already exists. AIM therefore appears once in GNOME, KDE
+Plasma, and other freedesktop-compatible application menus. Its PNG icon is
+extracted from the user's installed AIM shortcut and executable into the
+external project data directory; no AOL icon is distributed by this repository.
 
 The default choice downloads AIM 5.9.3861 from the configured unaffiliated
 OldVersion.com source. The patcher resolves the archive's current download
@@ -57,8 +74,9 @@ the pinned installer from the unaffiliated OldVersion archive, verifies its
 SHA-256, creates the prefix, installs AIM, and applies the compatibility
 changes.
 
-The current installer is intentionally strict: it expects **system Wine 9.0**
-because the included `mciwave.dll` was built and validated against Wine 9.0.
+The published v0.1.1 Lutris installer remains intentionally strict: it uses
+the Wine 9.0 DLL from that release. Wine 10 testing currently uses the
+repository checkout or a locally built terminal bundle.
 
 ## Manual known-good recipe
 
@@ -120,5 +138,6 @@ wine "C:\Program Files\AIM\aim.exe"
 ```
 
 Rollback restores the backed-up Wine `mciwave.dll` and `system.ini`, removes
-the `mciwave` override, restores `aimapi.dll` when possible, and records the
-rollback time in the prefix state.
+the `mciwave` override, restores `aimapi.dll` when possible, removes the
+project-owned application entry and extracted icon, and records the rollback
+time in the prefix state.

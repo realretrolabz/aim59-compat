@@ -28,10 +28,10 @@ Change visibility/name as desired.
 Read AGENTS.md and all docs before making changes.
 
 Audit the starter repository for correctness against current Lutris installer
-syntax and the documented Wine 9.0 AIM sound fix.
+syntax and the documented versioned Wine AIM sound fixes.
 
 Do not add any AOL/AIM binaries.
-Do not change the supported AIM or Wine versions.
+Do not change the supported AIM or Wine versions without the required validation.
 Run make verify.
 Show me the diff before committing.
 ```

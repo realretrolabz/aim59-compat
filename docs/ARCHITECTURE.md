@@ -58,7 +58,7 @@ DLL, or Wine registry methods.
 
 `manifests/aim-5.9.3861.json` is the supported-version contract. It pins the
 installer identity, known third-party source resolver, Wine requirements,
-prefix layout, Winetricks packages, and patched `mciwave.dll` checksum.
+prefix layout, Winetricks packages, and versioned patched `mciwave.dll` checksums.
 
 The OldVersion source stores a stable version-page URL rather than its
 short-lived download token. The downloader loads the page, submits its current
@@ -67,8 +67,9 @@ when the pinned SHA-256 matches.
 
 ## Commands
 
-`aim59 setup` owns the complete terminal workflow: validate Wine 9.0, acquire
-and verify the installer, create a win32 prefix, install `winxp` and
+`aim59 setup` owns the complete terminal workflow: validate Wine 9.0 or 10.0,
+select its matching patched DLL, acquire and verify the installer, create a
+win32 prefix, install `winxp` and
 `mfc40`, run the installer, and invoke the Wine compatibility backend.
 
 The existing ordering is preserved: Wine command/version and patched-DLL
@@ -87,21 +88,23 @@ prefix. Applied state and the `system.ini` backup live in the prefix under
 
 The Wine backend:
 
-1. validates the exact published patched-DLL checksum and marker
+1. selects the version-matched DLL and validates its exact checksum and marker
 2. verifies that `aim.exe` and `sb.dll` exist
 3. registers `sb.dll`
 4. disables `aimapi.dll` by renaming it
 5. backs up and replaces the prefix-local `mciwave.dll`
 6. sets the native-then-builtin override and both MCI WaveAudio mappings
 7. updates `system.ini`
-8. records the applied state for diagnostics and rollback
+8. extracts AIM's icon from the user's installed executable and writes a
+   project-owned XDG application-menu entry
+9. records the applied state for diagnostics and rollback
 
 The system Wine installation is never modified.
 
 ## Distribution adapters
 
 The terminal release archive is the primary standalone distribution. It
-packages an executable copy of the zip application beside the patched DLL so
+packages an executable copy of the zip application beside the patched DLLs so
 `./aim59 setup` works without assembly or extra path arguments. It also
 includes checksums, licenses, documentation, and the Wine source/build
 materials required for the modified DLL.

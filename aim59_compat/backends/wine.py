@@ -19,6 +19,7 @@ class WineBackend:
         prefix: Path,
         patched_dll: Path,
         *,
+        auto_select_patched_dll: bool = False,
         wine: str = "wine",
         wineboot: str = "wineboot",
         wineserver: str = "wineserver",
@@ -28,6 +29,8 @@ class WineBackend:
         self.manifest = manifest
         self.prefix = prefix
         self.patched_dll = patched_dll
+        self.auto_select_patched_dll = auto_select_patched_dll
+        self.wine_version_prefix: str | None = None
         self.wine = wine
         self.wineboot = wineboot
         self.wineserver = wineserver
@@ -45,6 +48,38 @@ class WineBackend:
     @property
     def state_dir(self) -> Path:
         return self.prefix / ".aim59-compat"
+
+    @property
+    def xdg_data_home(self) -> Path:
+        data_home = os.environ.get("XDG_DATA_HOME")
+        return (
+            Path(data_home).expanduser()
+            if data_home
+            else Path.home() / ".local/share"
+        )
+
+    @property
+    def application_menu_entry(self) -> Path:
+        return self.xdg_data_home / "applications/aim59-compat.desktop"
+
+    @property
+    def wine_generated_menu_entries(self) -> tuple[Path, ...]:
+        applications = self.xdg_data_home / "applications"
+        return (
+            applications / "wine/Programs/AOL Instant Messenger/AIM.desktop",
+            applications / "wine-Programs-AOL Instant Messenger-AIM.desktop",
+        )
+
+    @property
+    def application_icon(self) -> Path:
+        return self.xdg_data_home / "aim59-compat/icons/aim.png"
+
+    @property
+    def installer_menu_link(self) -> Path:
+        return self.prefix / (
+            "drive_c/ProgramData/Microsoft/Windows/Start Menu/Programs/"
+            "AOL Instant Messenger/AIM.lnk"
+        )
 
     @property
     def setup_presentation(self) -> SetupPresentation:
@@ -110,18 +145,36 @@ class WineBackend:
             capture_output=True,
         )
         version = result.stdout.strip() or result.stderr.strip()
-        expected = self.manifest["wine"]["version_prefix"]
-        if result.returncode != 0 or (enforce_version and not version.startswith(expected)):
+        if "wine32 is missing" in result.stderr.lower():
             raise BackendError(
-                f"This backend is validated only with {expected}. Detected: {version or '<none>'}"
+                "Wine 32-bit support is missing. On Debian with i386 enabled, run: "
+                "sudo apt install wine32:i386"
             )
+        supported = tuple(self.manifest["wine"]["version_prefixes"])
+        matched = next((item for item in supported if version.startswith(item)), None)
+        if result.returncode != 0 or (enforce_version and matched is None):
+            expected = " or ".join(item.removeprefix("wine-") for item in supported)
+            raise BackendError(
+                f"This backend has version-matched patches only for Wine {expected}. "
+                f"Detected: {version or '<none>'}"
+            )
+        if matched is not None:
+            self.wine_version_prefix = matched
+            if self.auto_select_patched_dll:
+                filename = self.manifest["mciwave"]["variants"][matched]["filename"]
+                self.patched_dll = self.patched_dll.with_name(filename)
         return version
+
+    def _mciwave_variant(self) -> dict[str, str]:
+        if self.wine_version_prefix is None:
+            raise BackendError("Wine version must be checked before selecting mciwave.dll")
+        return self.manifest["mciwave"]["variants"][self.wine_version_prefix]
 
     def verify_patched_dll(self) -> str:
         if not self.patched_dll.is_file():
             raise BackendError(f"Patched mciwave DLL not found: {self.patched_dll}")
         digest = sha256_file(self.patched_dll)
-        expected = self.manifest["mciwave"]["sha256"]
+        expected = self._mciwave_variant()["sha256"]
         if digest != expected:
             raise BackendError(
                 f"Patched mciwave checksum mismatch: expected {expected}, got {digest}"
@@ -154,10 +207,115 @@ class WineBackend:
 
     def install_aim(self, installer: Path) -> None:
         print(f"→ Running AIM {self.manifest['version']} installer")
-        self._run([self.wine, str(installer)])
+        overrides = os.environ.get("WINEDLLOVERRIDES", "")
+        if overrides:
+            overrides += ";"
+        overrides += "winemenubuilder.exe="
+        self._run(
+            [self.wine, str(installer)],
+            extra_env={"WINEDLLOVERRIDES": overrides},
+        )
         self.stop_wine()
         if not self.dry_run:
             self._require_aim_files()
+
+    @staticmethod
+    def _desktop_exec_argument(value: str) -> str:
+        escaped = value.replace("\\", "\\\\")
+        for character in ('"', "`", "$"):
+            escaped = escaped.replace(character, "\\" + character)
+        return f'"{escaped}"'
+
+    def install_menu_shortcut(self) -> None:
+        print("→ Installing AIM application-menu shortcut")
+        executable = self.aim_dir / self.manifest["wine"]["executable"]
+        if not self.dry_run:
+            if not self.installer_menu_link.is_file():
+                raise BackendError(
+                    "AIM installer did not create the shortcut needed to extract "
+                    f"its icon: {self.installer_menu_link}"
+                )
+            self.application_icon.parent.mkdir(parents=True, exist_ok=True)
+
+        self._run(
+            [
+                self.wine,
+                "winemenubuilder.exe",
+                "-t",
+                str(self.installer_menu_link),
+                str(self.application_icon),
+            ]
+        )
+        if not self.dry_run:
+            if (
+                not self.application_icon.is_file()
+                or self.application_icon.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n"
+            ):
+                raise BackendError(
+                    "Wine could not extract AIM's embedded icon to "
+                    f"{self.application_icon}"
+                )
+
+        command = " ".join(
+            (
+                "env",
+                self._desktop_exec_argument(f"WINEPREFIX={self.prefix}"),
+                self._desktop_exec_argument(self.wine),
+                self._desktop_exec_argument(str(executable)),
+            )
+        )
+        desktop_entry = (
+            "[Desktop Entry]\n"
+            "Type=Application\n"
+            "Name=AOL Instant Messenger 5.9\n"
+            "Comment=Launch AIM 5.9.3861 with its compatibility prefix\n"
+            f"Exec={command}\n"
+            f"Path={self.aim_dir}\n"
+            f"Icon={self.application_icon}\n"
+            "Terminal=false\n"
+            "StartupNotify=true\n"
+            "StartupWMClass=aim.exe\n"
+            "Categories=Network;InstantMessaging;\n"
+            "Keywords=AIM;AOL;Chat;Instant Messaging;\n"
+            f"X-AIM59-Prefix={self.prefix}\n"
+        )
+        if self.dry_run:
+            print(f"  → Would write {self.application_menu_entry}")
+            return
+
+        self._remove_wine_generated_menu_entries()
+        self.application_menu_entry.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.application_menu_entry.with_suffix(".desktop.tmp")
+        temporary.write_text(desktop_entry, encoding="utf-8")
+        temporary.chmod(0o644)
+        temporary.replace(self.application_menu_entry)
+
+        written = self.application_menu_entry.read_text(
+            encoding="utf-8", errors="replace"
+        )
+        if written != desktop_entry:
+            raise BackendError(
+                f"Failed to verify application-menu entry: {self.application_menu_entry}"
+            )
+
+    def _remove_wine_generated_menu_entries(self) -> None:
+        for path in self.wine_generated_menu_entries:
+            if not path.is_file():
+                continue
+            desktop_entry = path.read_text(encoding="utf-8", errors="replace")
+            if str(self.prefix) in desktop_entry:
+                path.unlink()
+
+    def remove_menu_shortcut(self) -> None:
+        if not self.application_menu_entry.is_file():
+            return
+        desktop_entry = self.application_menu_entry.read_text(
+            encoding="utf-8", errors="replace"
+        )
+        if f"X-AIM59-Prefix={self.prefix}\n" in desktop_entry:
+            self.application_menu_entry.unlink()
+            if self.application_icon.is_file():
+                self.application_icon.unlink()
 
     def prepare_setup(self) -> None:
         self.check_tools(require_winetricks=True, require_wineboot=True)
@@ -279,20 +437,28 @@ class WineBackend:
 
         if not self.dry_run:
             self._update_system_ini(system_ini)
+        try:
+            self.install_menu_shortcut()
+        finally:
+            self.stop_wine()
+
+        if not self.dry_run:
             state = {
                 "schema": 1,
                 "manifest": self.manifest["id"],
                 "applied_at": datetime.now(timezone.utc).isoformat(),
                 "prefix": str(self.prefix),
                 "mciwave_sha256": sha256_file(self.patched_dll),
+                "wine_version": self.wine_version_prefix,
                 "aimapi_disabled": aimapi_disabled.is_file(),
                 "mciwave_backup": mciwave_backup.is_file(),
                 "system_ini_backup": system_ini_backup.is_file(),
+                "application_menu_entry": str(self.application_menu_entry),
+                "application_icon": str(self.application_icon),
             }
             (self.state_dir / "state.json").write_text(
                 json.dumps(state, indent=2) + "\n", encoding="utf-8"
             )
-        self.stop_wine()
 
     def doctor(self) -> list[tuple[bool, str]]:
         checks: list[tuple[bool, str]] = []
@@ -308,13 +474,21 @@ class WineBackend:
                 ((self.aim_dir / "aim.exe").is_file(), "AIM executable installed"),
                 ((self.aim_dir / "sb.dll").is_file(), "SuperBuddy component installed"),
                 (
+                    self.application_menu_entry.is_file()
+                    and self.application_icon.is_file(),
+                    "Application-menu shortcut installed",
+                ),
+                (
                     (self.aim_dir / "aimapi.dll.disabled").is_file(),
                     "aimapi.dll disabled",
                 ),
             ]
         )
         installed = self.system32 / "mciwave.dll"
-        expected = self.manifest["mciwave"]["sha256"]
+        try:
+            expected = self._mciwave_variant()["sha256"]
+        except BackendError:
+            expected = ""
         checks.append(
             (
                 installed.is_file() and sha256_file(installed) == expected,
@@ -374,4 +548,5 @@ class WineBackend:
                 state = json.loads(state_file.read_text(encoding="utf-8"))
                 state["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
                 state_file.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+            self.remove_menu_shortcut()
         self.stop_wine()

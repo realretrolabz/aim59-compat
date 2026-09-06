@@ -23,6 +23,7 @@ DEFAULT_BUILD_TARGET = BackendTarget.WINE
 class WineBackendOptions:
     prefix: Path
     patched_dll: Path
+    auto_select_patched_dll: bool = False
     wine: str = "wine"
     wineboot: str = "wineboot"
     wineserver: str = "wineserver"
@@ -80,6 +81,7 @@ def create_wine_backend(
         manifest,
         options.prefix,
         options.patched_dll,
+        auto_select_patched_dll=options.auto_select_patched_dll,
         wine=options.wine,
         wineboot=options.wineboot,
         wineserver=options.wineserver,
