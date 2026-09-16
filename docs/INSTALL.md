@@ -3,12 +3,12 @@
 ## Terminal release archive
 
 The primary terminal distribution contains the patcher and its versioned
-patched Wine DLLs together. The published v0.1.1 archive contains the Wine 9
-DLL; a bundle built from the current checkout also contains the Wine 10 candidate.
+patched Wine DLLs together. The v0.1.2 archive contains the runtime-validated
+Wine 9 DLL and the build-validated Wine 10 candidate.
 
 ```bash
-tar -xzf aim59-compat-0.1.1-linux.tar.gz
-cd aim59-compat-0.1.1
+tar -xzf aim59-compat-0.1.2-linux.tar.gz
+cd aim59-compat-0.1.2
 ./aim59 setup
 ```
 
@@ -65,18 +65,19 @@ Open the Lutris installer from a repository checkout:
 lutris -i lutris/aim-5.9.3861.yml
 ```
 
-The YAML downloads its patcher and Wine DLL from the project's versioned
-GitHub Release. It uses Lutris file aliases rather than `$SCRIPTDIR`, which is
-not available in Lutris 0.5.14.
+The YAML downloads the complete Linux bundle from the project's versioned
+GitHub Release and extracts it into Lutris's temporary cache. The patcher and
+both versioned DLLs therefore remain adjacent without relying on `$SCRIPTDIR`,
+which is not available in Lutris 0.5.14.
 
 Lutris delegates to `aim59 setup --source oldversion`. The patcher downloads
 the pinned installer from the unaffiliated OldVersion archive, verifies its
 SHA-256, creates the prefix, installs AIM, and applies the compatibility
 changes.
 
-The published v0.1.1 Lutris installer remains intentionally strict: it uses
-the Wine 9.0 DLL from that release. Wine 10 testing currently uses the
-repository checkout or a locally built terminal bundle.
+The patcher detects system Wine 9.0 or 10.0 and selects the matching bundled
+DLL. Wine 9.0 is runtime validated. Wine 10.0 remains a test candidate until
+the repeated-notification-sound runtime matrix is complete.
 
 ## Manual known-good recipe
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import re
 import sys
 import yaml
 
@@ -26,13 +27,30 @@ for path in files:
     rendered = path.read_text(encoding="utf-8")
     if " setup " not in rendered or "--source oldversion" not in rendered:
         raise SystemExit(f"{path}: does not delegate setup to the canonical patcher")
-    if "$aim59_patcher" not in rendered or "$mciwave_patch" not in rendered:
-        raise SystemExit(f"{path}: does not use Lutris installer-file aliases")
+    if "file: aim59_bundle" not in rendered:
+        raise SystemExit(f"{path}: does not extract the release-bundle alias")
+    if 'python3 -u "$CACHE/aim59" setup' not in rendered:
+        raise SystemExit(f"{path}: does not run the release-bundled patcher")
+    if "--patched-dll" in rendered:
+        raise SystemExit(f"{path}: bypasses the patcher's version-aware DLL selection")
+    bundle_files = [
+        item["aim59_bundle"]
+        for item in script.get("files", [])
+        if isinstance(item, dict) and "aim59_bundle" in item
+    ]
+    if len(bundle_files) != 1 or not isinstance(bundle_files[0], dict):
+        raise SystemExit(f"{path}: must define exactly one release-bundle alias")
+    checksum = bundle_files[0].get("checksum", "")
+    if re.fullmatch(r"sha256:[0-9a-f]{64}", checksum) is None:
+        raise SystemExit(f"{path}: release bundle does not have a valid SHA-256")
     release_base = (
         f"https://github.com/realretrolabz/aim59-compat/releases/download/v{version}/"
     )
     if release_base not in rendered:
         raise SystemExit(f"{path}: does not use the current version's GitHub Release assets")
+    archive_name = f"aim59-compat-{version}-linux.tar.gz"
+    if rendered.count(archive_name) != 2:
+        raise SystemExit(f"{path}: does not use the current release bundle")
     if "file://" in rendered or "$SCRIPTDIR" in rendered:
         raise SystemExit(f"{path}: contains an unsupported local asset reference")
     for duplicated_step in ("name: create_prefix", "name: winetricks", "name: wineexec"):

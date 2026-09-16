@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import shutil
 import tempfile
-import zipapp
+import zipfile
 from pathlib import Path
 
 
@@ -25,11 +25,21 @@ with tempfile.TemporaryDirectory(prefix="aim59-patcher-") as temporary:
         encoding="utf-8",
     )
     output.parent.mkdir(parents=True, exist_ok=True)
-    zipapp.create_archive(
-        staging,
-        target=output,
-        interpreter="/usr/bin/env python3",
-        compressed=True,
-    )
+    with output.open("wb") as stream:
+        stream.write(b"#!/usr/bin/env python3\n")
+        with zipfile.ZipFile(
+            stream,
+            mode="w",
+            compression=zipfile.ZIP_DEFLATED,
+            compresslevel=9,
+        ) as archive:
+            for source in sorted(path for path in staging.rglob("*") if path.is_file()):
+                relative = source.relative_to(staging).as_posix()
+                info = zipfile.ZipInfo(relative, date_time=(1980, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.create_system = 3
+                info.external_attr = (source.stat().st_mode & 0xFFFF) << 16
+                archive.writestr(info, source.read_bytes(), compresslevel=9)
+    output.chmod(output.stat().st_mode | 0o111)
 
 print(output)

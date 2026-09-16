@@ -57,18 +57,18 @@ prefix. Consult [INSTALL.md](docs/INSTALL.md) for the manual known-good recipe.
 
 ### 1. Terminal release
 
-Download `aim59-compat-0.1.1-linux.tar.gz` from the GitHub Release, then run:
+Download `aim59-compat-0.1.2-linux.tar.gz` from the GitHub Release, then run:
 
 ```bash
-tar -xzf aim59-compat-0.1.1-linux.tar.gz
-cd aim59-compat-0.1.1
+tar -xzf aim59-compat-0.1.2-linux.tar.gz
+cd aim59-compat-0.1.2
 ./aim59 setup
 ```
 
-The published v0.1.1 bundle contains the validated Wine 9 DLL. Bundles built
-from the current checkout contain both versioned DLLs and select the one that
-matches the detected Wine version, so no manual `--patched-dll` argument is
-required.
+The v0.1.2 bundle contains both versioned DLLs and selects the one that matches
+the detected Wine version, so no manual `--patched-dll` argument is required.
+Wine 9.0 remains runtime validated; Wine 10.0 is available as a build-validated
+candidate while its repeated-sound runtime matrix is completed.
 
 ### 2. Lutris
 
@@ -353,32 +353,32 @@ lutris -i lutris/aim-5.9.3861.yml
 
 Lutris calls the canonical terminal engine through `aim59 setup --source
 oldversion`. The patcher downloads the pinned AIM installer from the
-unaffiliated OldVersion archive, verifies its SHA-256, checks system Wine 9.0,
-creates the win32 prefix, installs `winxp` and `mfc40`, runs AIM's installer,
-and applies the compatibility changes. The YAML does not duplicate that
-workflow.
+unaffiliated OldVersion archive, verifies its SHA-256, checks system Wine 9.0
+or 10.0, selects the matching bundled DLL, creates the win32 prefix, installs
+`winxp` and `mfc40`, runs AIM's installer, and applies the compatibility
+changes. The YAML does not duplicate that workflow.
 
-The YAML downloads two project-owned implementation assets from the versioned
-`v0.1.1` GitHub Release:
+The YAML downloads one project-owned implementation asset from the versioned
+`v0.1.2` GitHub Release:
 
-- `aim59-patcher.pyz`
-- `mciwave-wine9-x86-aim.dll`
+- `aim59-compat-0.1.2-linux.tar.gz`
 
-Neither release asset contains AIM. During installation, the downloaded
-patcher fetches AIM directly from OldVersion into Lutris's temporary installer
-cache. See [lutris/README.md](lutris/README.md) for details.
+The bundle contains the canonical patcher and the Wine 9.0 and Wine 10.0
+patched DLLs, but it does not contain AIM. During installation, the patcher
+fetches AIM directly from OldVersion into Lutris's temporary installer cache.
+See [lutris/README.md](lutris/README.md) for details.
 
 ## Using the loose patcher assets
 
-The `.pyz` is published separately because Lutris consumes it. Terminal users
-should normally download the complete Linux archive above. To use the loose
-assets directly, place the `.pyz` and DLL together and run:
+The `.pyz` and DLLs remain available as implementation assets. Terminal and
+Lutris users should normally use the complete Linux archive above. To use the
+loose assets directly, place the `.pyz` and both DLLs together and run:
 
 ```bash
 python3 aim59-patcher.pyz setup
 ```
 
-Lutris passes this DLL path automatically.
+The patcher selects the matching adjacent DLL automatically.
 
 ## Build and verification
 
@@ -401,7 +401,7 @@ make release
 Output:
 
 ```text
-dist/aim59-compat-0.1.1-linux.tar.gz
+dist/aim59-compat-0.1.2-linux.tar.gz
 dist/aim59-patcher.pyz
 dist/mciwave-wine9-x86-aim.dll
 dist/mciwave-wine10-x86-aim.dll

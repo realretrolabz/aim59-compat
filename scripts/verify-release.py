@@ -9,6 +9,8 @@ import sys
 import tarfile
 from pathlib import Path, PurePosixPath
 
+import yaml
+
 
 root = Path(__file__).resolve().parents[1]
 version = (root / "VERSION").read_text(encoding="utf-8").strip()
@@ -62,6 +64,22 @@ if set(release_sums) != expected_release_files:
 for filename, expected in release_sums.items():
     if digest_file(dist / filename) != expected:
         raise SystemExit(f"Release checksum mismatch: {filename}")
+
+lutris_data = yaml.safe_load((dist / "aim-5.9.3861.yml").read_text(encoding="utf-8"))
+bundle_files = [
+    item["aim59_bundle"]
+    for item in lutris_data["script"]["files"]
+    if isinstance(item, dict) and "aim59_bundle" in item
+]
+if len(bundle_files) != 1:
+    raise SystemExit("Lutris YAML must define exactly one release-bundle alias")
+declared_bundle_checksum = bundle_files[0].get("checksum")
+actual_bundle_checksum = f"sha256:{digest_file(archive)}"
+if declared_bundle_checksum != actual_bundle_checksum:
+    raise SystemExit(
+        "Lutris bundle checksum mismatch: "
+        f"expected {actual_bundle_checksum}, got {declared_bundle_checksum}"
+    )
 
 with tarfile.open(archive, "r:gz") as source:
     members = {PurePosixPath(member.name): member for member in source.getmembers()}
