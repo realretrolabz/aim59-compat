@@ -113,16 +113,20 @@ performs setup through its graphical workflow.
 
 `rrlzAIM.exe` (realretrolabz AIM Manager) is a self-contained Windows 11 setup
 utility.
-Build its source from [`windows/AIM59Setup/`](windows/AIM59Setup/) on Windows;
-the resulting EXE downloads or validates the pinned original installer, runs
-it, waits for `aim.exe` and `aimapi.dll` to settle, disables `aimapi.dll`, and
-configures a selectable OSCAR host and port. It can reapply that server setting
-without reinstalling AIM and can start AIM's normal registered uninstaller. It
-has been used successfully in a Windows 11 guest. It is a hobby utility, not a
-portable application; Windows 10 has not been tried. The prior PowerShell
-proof-of-concept remains archived as historical source, not an EXE dependency.
-See [WINDOWS_INSTALL.md](docs/WINDOWS_INSTALL.md) for build, use, rollback,
-and optional clean-snapshot checks.
+Download `rrlzAIM.exe` and `rrlzAIM.exe.sha256` from the GitHub Release, verify
+the downloaded EXE against its adjacent SHA-256 file, then run the EXE directly.
+It downloads or validates the pinned original installer, runs it, waits for
+`aim.exe` and `aimapi.dll` to settle, disables `aimapi.dll`, and configures a
+selectable OSCAR host and port. It can reapply that server setting without
+reinstalling AIM and can start AIM's normal registered uninstaller.
+
+Building from [`windows/AIM59Setup/`](windows/AIM59Setup/) is an additional
+option for contributors and local testing. It has been used successfully in a
+Windows 11 guest. It is a hobby utility, not a portable application; Windows 10
+has not been tried. The prior PowerShell proof-of-concept remains archived as
+historical source, not an EXE dependency. See [WINDOWS_INSTALL.md](docs/WINDOWS_INSTALL.md)
+for download verification, source builds, use, rollback, and optional
+clean-snapshot checks.
 
 ## Repository quick start
 

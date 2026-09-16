@@ -16,7 +16,22 @@ The older [`install-aim59.ps1`](../scripts/windows/install-aim59.ps1) is kept
 only as archived proof-of-concept source and historical test evidence. The EXE
 does not locate, invoke, or require it.
 
-## Build the EXE
+## Download the release EXE (recommended)
+
+Download `rrlzAIM.exe` and `rrlzAIM.exe.sha256` from the project's GitHub
+Release. Keep the two files together, then verify the EXE before running it:
+
+```powershell
+$expected = (Get-Content .\rrlzAIM.exe.sha256).Split()[0]
+$actual = (Get-FileHash .\rrlzAIM.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($actual -ne $expected) { throw 'rrlzAIM.exe SHA-256 verification failed.' }
+```
+
+The release EXE is self-contained; after verification, run it directly or copy
+it to a removable drive. It does not need a repository checkout or an adjacent
+PowerShell script.
+
+## Build the EXE from source (optional)
 
 On Windows, from a repository checkout, run:
 
@@ -43,7 +58,8 @@ the VM, but it does not execute the EXE on Windows by itself.
 
 ## Run the native setup
 
-Copy the generated EXE to a removable drive or other test location:
+Run the downloaded EXE directly, or copy a downloaded or generated EXE to a
+removable drive or other test location:
 
 ```text
 <drive>:\AIM59-Test\
@@ -124,7 +140,8 @@ Use these notes if you want to exercise the workflow again from the powered-off
 `Pre-AIM` snapshot. Keep screenshots, raw logs, VM disks, installers, installed
 AIM files, screen names, and other private evidence outside Git.
 
-1. Build the EXE and put only `rrlzAIM.exe` plus optional instructions in
+1. Download the release EXE or build it from source, then put only
+   `rrlzAIM.exe` plus optional instructions in
    the removable-drive test folder.
 2. Restore `Pre-AIM`, sign in as the intended administrator, run the EXE from
    the removable drive, and confirm a denied UAC prompt exits clearly without

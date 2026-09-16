@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Lead the native Windows instructions with the verified GitHub Release EXE,
+  while retaining source builds as an optional contributor workflow.
+
 ## 0.1.3 - 2026-09-15
 
 - Add a source-only, self-contained Windows Forms setup utility.
