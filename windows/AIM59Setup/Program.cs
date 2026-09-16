@@ -157,16 +157,17 @@ namespace AIM59Setup
 
             Label summary = new Label
             {
+                Font = new Font(Font.FontFamily, 8.25F, FontStyle.Regular),
                 Location = new Point(18, 165),
-                Size = new Size(1024, 42),
-                Text = "Experimental Windows 11 workflow. This setup verifies the original installer, runs it, and makes its reversible aimapi.dll compatibility change."
+                Size = new Size(1024, 54),
+                Text = "Windows 10/11 AOL Instant Messenger installer/management tool (tested in Windows 11). This tool verifies the original installer, runs it, makes a reversible aimapi.dll compatibility change, and optionally sets the server of your choice in the registry.\r\nNote: Saving server changes in the AIM GUI overwrites that setting. Enter the server manually in AIM or run this tool again and select Apply Server Setting."
             };
             Controls.Add(summary);
 
             GroupBox installerGroup = new GroupBox
             {
                 Text = "Installer source",
-                Location = new Point(18, 219),
+                Location = new Point(18, 231),
                 Size = new Size(1024, 128)
             };
             Controls.Add(installerGroup);
@@ -219,7 +220,7 @@ namespace AIM59Setup
             GroupBox serverGroup = new GroupBox
             {
                 Text = "AIM server",
-                Location = new Point(18, 359),
+                Location = new Point(18, 371),
                 Size = new Size(1024, 146)
             };
             Controls.Add(serverGroup);
@@ -293,7 +294,7 @@ namespace AIM59Setup
 
             status = new Label
             {
-                Location = new Point(18, 518),
+                Location = new Point(18, 530),
                 Size = new Size(1024, 26),
                 Text = "Ready. Install AIM, apply a server setting, restore aimapi.dll, or start AIM's uninstaller.",
                 ForeColor = SystemColors.ControlText
@@ -302,7 +303,7 @@ namespace AIM59Setup
 
             downloadProgress = new ProgressBar
             {
-                Location = new Point(18, 548),
+                Location = new Point(18, 560),
                 Maximum = 100,
                 Minimum = 0,
                 Size = new Size(1024, 17),
@@ -313,18 +314,18 @@ namespace AIM59Setup
             Label detailsLabel = new Label
             {
                 AutoSize = true,
-                Location = new Point(18, 576),
+                Location = new Point(18, 588),
                 Text = "Setup status and details"
             };
             Controls.Add(detailsLabel);
 
             details = new TextBox
             {
-                Location = new Point(18, 598),
+                Location = new Point(18, 610),
                 Multiline = true,
                 ReadOnly = true,
                 ScrollBars = ScrollBars.Vertical,
-                Size = new Size(1024, 116)
+                Size = new Size(1024, 104)
             };
             Controls.Add(details);
 

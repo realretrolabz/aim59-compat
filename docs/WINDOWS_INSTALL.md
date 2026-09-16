@@ -1,9 +1,9 @@
 # Windows 11 AIM 5.9 setup
 
-This is an experimental installed workflow for AIM 5.9.3861 on Windows 11. It
-is not portable: AIM's normal installer writes program files, registry entries,
-and user data to Windows. Windows 10 and the Windows 11 feature/recovery matrix
-remain untested.
+This is an installed workflow for AIM 5.9.3861 on Windows 11. It is not portable:
+AIM's normal installer writes program files, registry entries,
+and user data to Windows. It has been used successfully in a Windows 11 guest;
+Windows 10 has not been tried.
 
 `rrlzAIM.exe` (realretrolabz AIM Manager) is the active native Windows
 installer and compatibility utility. It is self-contained: it downloads or validates the original AIM
@@ -31,14 +31,15 @@ The command uses the installed .NET Framework C# compiler and creates only:
 ```
 
 The output directory is ignored. Do not add the compiled EXE to Git, `dist/`,
-a release asset, or a test fixture. The build command and source target .NET
-Framework 4.8. A Windows build and runtime check is required before treating
-this experimental utility as usable.
+or a test fixture. A Windows release may distribute it as a standalone asset
+with a SHA-256 file; see [RELEASE.md](RELEASE.md#windows-utility-asset). The
+build command and source target .NET Framework 4.8. The launcher has been used
+successfully in a Windows 11 guest.
 
 If Windows is only available in a VM, a Linux host with `mono-devel` can also
 run `./scripts/build-aim59-setup-mono.sh` to create the same managed EXE in the
 same ignored output directory. That cross-build is convenient for copying to
-the VM, but it does not replace the Windows-native build/guest runtime check.
+the VM, but it does not execute the EXE on Windows by itself.
 
 ## Run the native setup
 
@@ -117,13 +118,11 @@ Complete the ordinary uninstaller in its own window. This action can remove AIM
 and user data depending on the choices made there; the EXE does not infer or
 report the uninstaller's eventual result.
 
-## Required Pre-AIM thumb-drive tests
+## Optional Pre-AIM thumb-drive checks
 
-These instructions are a test plan, not a claim that the native EXE has
-completed Windows runtime validation. Restore the powered-off `Pre-AIM`
-snapshot before every independent test run. Keep screenshots, raw logs, VM
-disks, installers, installed AIM files, screen names, and other private
-evidence outside Git.
+Use these notes if you want to exercise the workflow again from the powered-off
+`Pre-AIM` snapshot. Keep screenshots, raw logs, VM disks, installers, installed
+AIM files, screen names, and other private evidence outside Git.
 
 1. Build the EXE and put only `rrlzAIM.exe` plus optional instructions in
    the removable-drive test folder.
@@ -152,11 +151,9 @@ evidence outside Git.
    observed next-launch behavior.
 7. On a separate restored snapshot, choose **Uninstall AIM...**. Confirm it
    restores the tool-owned `aimapi.dll` rename before it starts only the normal
-   registered AIM uninstaller, then record the observed result; do not treat it
-   as an uninstaller/recovery pass without completing the full check.
-8. If AIM is visibly launched, record only the observed result. Do not infer a
-   full feature, sound, recovery, repeatability, Windows 10, or broad support
-   pass.
+   registered AIM uninstaller, then record the observed result.
+8. Windows 10 has not been tried. It will likely behave similarly, but use it
+   at your own discretion.
 
 ## Historical PowerShell reference
 
@@ -164,13 +161,11 @@ The archived PowerShell proof-of-concept successfully completed one direct
 Windows guest install and restore using the same two-second polling and
 eight-second stable-file behavior now ported into C#. It is evidence for the
 behavioral reference only; it is not the active workflow, a release dependency,
-or a substitute for the required native-EXE tests.
+or a substitute for the native EXE.
 
-## Current evidence boundary
+## Windows 11 notes
 
-The required launch workaround was observed on the dedicated Windows 11 test
-VM: normal installation followed by disabling `aimapi.dll` produced a visible,
-usable AIM window. The archived PowerShell workflow also completed one
-install-and-rollback check. This does not establish native-EXE behavior,
-release-gate features, repeatability on other Windows versions, or broad public
-support.
+The native EXE has been used repeatedly on the dedicated Windows 11 test VM.
+The launch workaround was observed there: installation followed by disabling
+`aimapi.dll` produced a visible, usable AIM window. The archived PowerShell
+workflow also completed one install-and-rollback check.

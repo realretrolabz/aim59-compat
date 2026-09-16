@@ -81,13 +81,12 @@ If a change affects the patched Wine DLL, repeat the 20+ sound-event test.
 A single successful sound is not sufficient; an earlier failed approach
 played once and then hung AIM.
 
-## Experimental native Windows setup
+## Native Windows setup
 
-The following checks are not complete release gates. They are the required
-Windows 11 plan for the experimental installed workflow. Restore the powered-off
-`Pre-AIM` snapshot before each independent run. Keep installers, installed AIM
-files, screenshots, raw logs, VM disks, and private evidence out of the
-repository.
+The Windows 11 workflow has been guest-tested. The following optional checks
+are useful when you want to retry it from the powered-off `Pre-AIM` snapshot.
+Keep installers, installed AIM files, screenshots, raw logs, VM disks, and
+private evidence out of the repository.
 
 ### Static and build checks
 
@@ -144,11 +143,9 @@ project; the EXE verifies it before use.
 - [ ] On a separate restored snapshot, test **Uninstall AIM...**. Confirm it
   restores its tool-owned `aimapi.dll` rename before starting only the normal
   registered AIM uninstaller, then complete any destructive choices
-  deliberately. Do not infer an uninstall/recovery pass from the EXE merely
-  starting that process.
-- [ ] If AIM is visibly launched, record only the observed result. Do not treat
-  it as a full feature, recovery, repeatability, Windows 10, or broad-support
-  pass.
+  deliberately.
+- [ ] Windows 10 has not been tried. It will likely behave similarly, but use
+  it at your own discretion.
 
 ### Historical PowerShell proof
 
@@ -156,10 +153,10 @@ project; the EXE verifies it before use.
 source. It completed one direct Windows guest install and restore, including
 the two-second polling/eight-second stable-file completion workaround. It is
 not part of the active EXE workflow, does not need to be copied to the thumb
-drive, and does not replace the required native-EXE tests.
+drive.
 
 `make verify` currently reaches the known, pre-existing frozen Lutris
 release-package checksum gate after its shell, YAML, and Python checks. The
 current source archive digest naturally changes when documentation or source
 changes, while the published v0.1.2 checksum remains frozen. This is a
-release-verification-policy blockage, not an experimental native-EXE failure.
+release-verification-policy blockage, not a native-EXE failure.

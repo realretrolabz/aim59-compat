@@ -17,6 +17,7 @@ DOCUMENTATION = ROOT / "docs" / "WINDOWS_DISCOVERY.md"
 FINDINGS = ROOT / "docs" / "WINDOWS_FINDINGS.md"
 INSTALL_DOCUMENTATION = ROOT / "docs" / "WINDOWS_INSTALL.md"
 EXE_HANDOFF = ROOT / "docs" / "WINDOWS_EXE_HANDOFF.md"
+RELEASE_DOCUMENTATION = ROOT / "docs" / "RELEASE.md"
 README = ROOT / "README.md"
 GITIGNORE = ROOT / ".gitignore"
 
@@ -35,6 +36,7 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         cls.findings = FINDINGS.read_text(encoding="utf-8")
         cls.install_documentation = INSTALL_DOCUMENTATION.read_text(encoding="utf-8")
         cls.exe_handoff = EXE_HANDOFF.read_text(encoding="utf-8")
+        cls.release_documentation = RELEASE_DOCUMENTATION.read_text(encoding="utf-8")
         cls.readme = README.read_text(encoding="utf-8")
         cls.gitignore = GITIGNORE.read_text(encoding="utf-8")
 
@@ -190,8 +192,8 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         self.assertIn("aimapi.dll.aim59-disabled", documentation)
         self.assertIn("Restore aimapi.dll", documentation)
         self.assertIn("aim.realretrolabz.com:5190", documentation)
-        self.assertIn("Current evidence boundary", documentation)
-        self.assertIn("does not establish native-EXE behavior", documentation)
+        self.assertIn("Windows 11 notes", documentation)
+        self.assertIn("used successfully in a Windows 11 guest", documentation)
         self.assertIn("does not locate, invoke, or require", documentation)
         self.assertIn("Apply server setting", documentation)
         self.assertIn("Uninstall AIM", documentation)
@@ -218,6 +220,9 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         self.assertIn("Restore aimapi.dll", source)
         self.assertIn("Apply server setting", source)
         self.assertIn("Uninstall AIM...", source)
+        self.assertIn("Windows 10/11 AOL Instant Messenger installer/management tool", source)
+        self.assertIn("Saving server changes in the AIM GUI overwrites that setting", source)
+        self.assertIn("select Apply Server Setting", source)
         self.assertIn("Consolas", source)
         self.assertIn("Color.FromArgb(0, 255, 0)", source)
         self.assertIn("BackColor = Color.Black", source)
@@ -342,10 +347,12 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
             with self.subTest(documentation=documentation[:32]):
                 self.assertIn("rrlzAIM.exe", documentation)
                 self.assertIn("native", documentation.lower())
-        self.assertIn("Required Pre-AIM thumb-drive tests", self.install_documentation)
-        self.assertIn("Windows build and runtime check", self.install_documentation)
-        self.assertIn("does not establish native-EXE behavior", self.install_documentation)
+        self.assertIn("Optional Pre-AIM thumb-drive checks", self.install_documentation)
+        self.assertIn("used successfully in a Windows 11 guest", self.install_documentation)
         self.assertIn("pre-existing", self.exe_handoff)
+        self.assertIn("## Windows utility asset", self.release_documentation)
+        self.assertIn("rrlzAIM.exe.sha256", self.release_documentation)
+        self.assertIn("install-aim59.ps1", self.release_documentation)
         archived_gui = ROOT / "scripts" / "windows" / "install-aim59-gui.ps1"
         self.assertTrue(archived_gui.exists())
         self.assertIn("ARCHIVED PROOF OF CONCEPT", archived_gui.read_text(encoding="utf-8"))

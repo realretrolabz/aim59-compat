@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cross-build the experimental native Windows setup with Mono. The produced
+# Cross-build the native Windows setup with Mono. The produced
 # managed PE executable must still be tested on Windows; this command does not
 # validate UAC, the Windows registry, or the original AIM installer workflow.
 

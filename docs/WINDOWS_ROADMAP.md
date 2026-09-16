@@ -2,7 +2,7 @@
 
 > Superseded planning record. This staged roadmap documents the earlier
 > Python-backend/portable-delivery exploration. The project owner has selected
-> the experimental self-contained C# `rrlzAIM.exe` direction instead; its
+> the self-contained C# `rrlzAIM.exe` direction instead; its
 > active implementation and validation plan are in
 > [WINDOWS_EXE_HANDOFF.md](WINDOWS_EXE_HANDOFF.md) and
 > [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md). Preserve this roadmap as

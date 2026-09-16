@@ -1,7 +1,7 @@
 # Historical native Windows investigation handoff
 
 > Historical record. This document preserves the staged discovery and
-> PowerShell-prototype history through Stage 4. The active experimental
+> PowerShell-prototype history through Stage 4. The active native Windows
 > implementation is the self-contained C# `rrlzAIM.exe` source described in
 > [WINDOWS_EXE_HANDOFF.md](WINDOWS_EXE_HANDOFF.md) and
 > [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md). It does not use the archived

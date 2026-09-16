@@ -33,7 +33,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Build experimental native Windows setup
+    - name: Build native Windows setup
       shell: pwsh
       run: .\scripts\windows\build-aim59-setup.ps1
 

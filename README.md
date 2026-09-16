@@ -78,20 +78,18 @@ performs setup through its graphical workflow.
 
 ### 3. Native Windows
 
-`rrlzAIM.exe` (realretrolabz AIM Manager) is an experimental self-contained
-Windows 11 setup utility.
+`rrlzAIM.exe` (realretrolabz AIM Manager) is a self-contained Windows 11 setup
+utility.
 Build its source from [`windows/AIM59Setup/`](windows/AIM59Setup/) on Windows;
 the resulting EXE downloads or validates the pinned original installer, runs
 it, waits for `aim.exe` and `aimapi.dll` to settle, disables `aimapi.dll`, and
 configures a selectable OSCAR host and port. It can reapply that server setting
 without reinstalling AIM and can start AIM's normal registered uninstaller. It
-is not portable and has not passed the native-Windows release gate; Windows 10
-is untested. The prior PowerShell proof-of-concept remains archived as
-historical source, not an EXE dependency. See
-[WINDOWS_INSTALL.md](docs/WINDOWS_INSTALL.md) for build, use, rollback, and
-Pre-AIM snapshot test instructions. See
-[WINDOWS_ROADMAP.md](docs/WINDOWS_ROADMAP.md) for the remaining validation
-work.
+has been used successfully in a Windows 11 guest. It is a hobby utility, not a
+portable application; Windows 10 has not been tried. The prior PowerShell
+proof-of-concept remains archived as historical source, not an EXE dependency.
+See [WINDOWS_INSTALL.md](docs/WINDOWS_INSTALL.md) for build, use, rollback,
+and optional clean-snapshot checks.
 
 ## Repository quick start
 
@@ -446,14 +444,14 @@ Build dependencies and the release process are documented in
 | `lutris/` | Local and release Lutris frontends |
 | `scripts/` | Build, compatibility wrappers, and verification tools |
 | `tests/` | Patcher unit tests |
-| `windows/AIM59Setup/` | Experimental self-contained native Windows setup source |
+| `windows/AIM59Setup/` | Self-contained native Windows setup source |
 | `docs/` | Architecture, installation, testing, and troubleshooting |
 
 The architecture and future backend boundary are described in
-[ARCHITECTURE.md](docs/ARCHITECTURE.md). The experimental Windows 11 setup is a
+[ARCHITECTURE.md](docs/ARCHITECTURE.md). The Windows 11 setup is a
 separate self-contained native C# EXE; it does not change the Python/Wine
 backend or Lutris workflow. Its earlier PowerShell proof-of-concept remains
-archived as historical source. Windows 10 requires its own validation.
+archived as historical source. Windows 10 has not been tried.
 
 ## Licensing and third parties
 

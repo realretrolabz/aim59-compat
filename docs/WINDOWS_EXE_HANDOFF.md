@@ -1,11 +1,11 @@
 # Native Windows EXE implementation handoff
 
-Status: source implementation updated 2026-09-14. A Windows build and fresh
-`Pre-AIM` runtime validation are still pending.
+Status: implemented and guest-tested on Windows 11. Windows 10 has not been
+tried.
 
 ## Active direction
 
-`windows/AIM59Setup/` contains the active experimental Windows implementation:
+`windows/AIM59Setup/` contains the active native Windows implementation:
 a small self-contained C# Windows Forms EXE targeting .NET Framework 4.8. It
 does not invoke PowerShell or require files beside `rrlzAIM.exe` at runtime.
 The older [`install-aim59.ps1`](../scripts/windows/install-aim59.ps1) remains
@@ -97,7 +97,7 @@ For a removable-drive test, copy only:
 There is deliberately no `install-aim59.ps1` beside the EXE. The missing-backend
 error expected by the retired launcher design no longer applies.
 
-## Validation state and next test
+## Guest-test notes
 
 Linux static tests cover source-level UI choices, UAC, network-request and
 identity-verification components, file/registry mutation boundaries, stable
@@ -105,12 +105,11 @@ completion detection, absence of PowerShell use, and the source-only build
 location. They do not compile or run the EXE on Windows.
 
 One Windows guest run of the archived PowerShell proof-of-concept completed the
-installer detection workaround and rollback. That is behavioral reference,
-not native-EXE validation. The required test is the full fresh-snapshot plan in
-[WINDOWS_INSTALL.md](WINDOWS_INSTALL.md#required-pre-aim-thumb-drive-tests)
-and [TESTING.md](TESTING.md#experimental-native-windows-setup). Until it is
-performed, make no claim of working EXE behavior, broad Windows support,
-Windows 10 support, feature coverage, recovery, or repeatability.
+installer detection workaround and rollback. It remains behavioral reference;
+the native EXE is separately guest-tested. The optional fresh-snapshot notes in
+[WINDOWS_INSTALL.md](WINDOWS_INSTALL.md#optional-pre-aim-thumb-drive-checks)
+and [TESTING.md](TESTING.md#native-windows-setup) are available if you want to
+repeat the process. Windows 10 has not been tried.
 
 `make verify` has a distinct, known pre-existing failure at the frozen Lutris
 release-package checksum comparison. The Python, shell, and YAML checks run

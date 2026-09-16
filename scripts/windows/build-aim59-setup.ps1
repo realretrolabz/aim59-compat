@@ -4,7 +4,7 @@ Builds the realretrolabz AIM Manager Windows Forms launcher into ignored build o
 
 .DESCRIPTION
 Uses the C# compiler included with the installed .NET Framework. The compiled
-EXE contains the experimental Windows installer and compatibility workflow.
+EXE contains the Windows installer and compatibility workflow.
 #>
 [CmdletBinding()]
 param()

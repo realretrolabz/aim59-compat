@@ -67,7 +67,7 @@ The published starter binary has a fixed checksum recorded in
 hash depending on toolchain/build metadata; structural checks are therefore
 separate from the published-binary checksum check.
 
-## Build the experimental native Windows setup
+## Build the native Windows setup
 
 The Windows Forms source and native workflow are in `windows/AIM59Setup/`. It
 targets .NET Framework 4.8, which is compatible with the .NET Framework
@@ -85,12 +85,14 @@ compiled output here:
 .build\windows-exe\rrlzAIM.exe
 ```
 
-`.build/` is ignored. Do not copy the EXE into the repository, `dist/`, a
-release asset, or a test fixture. The build script fails clearly if the C#
-compiler is absent. A Windows build and runtime check of this launcher remain
-required; source/static validation is not evidence of Windows runtime support.
+`.build/` is ignored. Do not copy the EXE into the repository, `dist/`, or a
+test fixture. A Windows release may distribute it as a standalone asset with a
+SHA-256 file; see [RELEASE.md](RELEASE.md#windows-utility-asset). The build
+script fails clearly if the C# compiler is absent. The launcher has been
+guest-tested on Windows 11; building it on another machine does not by itself
+test that machine's Windows setup.
 
-The EXE is a self-contained experimental Windows installer/patcher. It embeds
+The EXE is a self-contained Windows installer/patcher. It embeds
 the repository's multi-resolution setup icon and needs no adjacent PowerShell
 script. Its historical PowerShell proof-of-concept is retained in source but
 is not an EXE dependency; see
@@ -112,6 +114,5 @@ Then build the same managed PE32 EXE with:
 
 It writes the same ignored `.build/windows-exe/rrlzAIM.exe` output. This is
 useful when Windows runs only in a VM: copy the EXE to the guest or thumb drive
-for testing. Mono compilation does not validate the Windows runtime; retain the
-Windows PowerShell build as the Windows-native build/CI path and perform the
-required `Pre-AIM` guest tests before making a support claim.
+for use or testing. Mono compilation does not run the EXE on Windows; retain
+the Windows PowerShell build as the Windows-native build/CI path when available.

@@ -118,9 +118,8 @@ creates the prefix, runs the installer, and applies the Wine backend.
 self-contained zip application used by both the terminal archive and Lutris.
 It does not contain AIM.
 
-The experimental native Windows implementation now lives separately in the
+The native Windows implementation now lives separately in the
 self-contained C# `windows/AIM59Setup/` source tree; it is not a Python
 backend or a Linux/Lutris release artifact. It may not inherit Wine-specific
-fixes or support claims without testing. Windows 11 is its initial test target;
-Windows 10 requires separate validation. See
-[WINDOWS_INSTALL.md](WINDOWS_INSTALL.md) for its current evidence boundary.
+fixes. It has been guest-tested on Windows 11; Windows 10 has not been tried.
+See [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md) for its Windows notes.

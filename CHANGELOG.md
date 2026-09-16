@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add a source-only, self-contained experimental Windows Forms setup utility.
+- Add a source-only, self-contained Windows Forms setup utility.
   Its compiled EXE is intentionally not tracked or packaged.
 - Port the observed Windows installer workflow into the native C# EXE:
   OldVersion/local installer acquisition and identity verification, stable-file
@@ -13,13 +13,13 @@
 - Add an optional Mono cross-build command for producing the ignored EXE from a
   Linux host before transferring it to a Windows test VM.
 - Add installer-free server reapplication and registered-uninstaller launch
-  actions to the experimental EXE, and document AIM's observed Server-dialog
+  actions to the Windows EXE, and document AIM's observed Server-dialog
   overwrite behavior.
 - Add a supplied black-and-green terminal-style banner and an explicit
-  close-workflow confirmation to the experimental EXE.
-- Embed the supplied multi-resolution AIM59 setup icon in the experimental EXE
+  close-workflow confirmation to the Windows EXE.
+- Embed the supplied multi-resolution AIM59 setup icon in the Windows EXE
   and use it for the setup window.
-- Name the experimental Windows utility **realretrolabz AIM Manager** and its
+- Name the Windows utility **realretrolabz AIM Manager** and its
   ignored build output `rrlzAIM.exe`.
 - Let **Uninstall AIM...** recognize versioned AIM registry names, unquoted
   executable paths with spaces, and a registered uninstaller in an AIM
@@ -28,6 +28,9 @@
   AIM's normal uninstaller.
 - Add an unchecked opt-in cleanup for the exact `Free AOL & Unlimited
   Internet.lnk` shortcut on the current-user and Public Desktop after install.
+- Prepare the self-contained Windows EXE for separate release distribution with
+  a published SHA-256, while keeping all AIM files and the EXE itself out of
+  Git and the Linux archive.
 
 ## 0.1.2 - 2026-09-05
 
