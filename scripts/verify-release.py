@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import hashlib
 import io
 import json
@@ -11,6 +12,14 @@ from pathlib import Path, PurePosixPath
 
 import yaml
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--require-published-bundle-checksum",
+    action="store_true",
+    help="fail when the working-tree archive differs from the checksum declared for the published release",
+)
+arguments = parser.parse_args()
 
 root = Path(__file__).resolve().parents[1]
 version = (root / "VERSION").read_text(encoding="utf-8").strip()
@@ -76,10 +85,18 @@ if len(bundle_files) != 1:
 declared_bundle_checksum = bundle_files[0].get("checksum")
 actual_bundle_checksum = f"sha256:{digest_file(archive)}"
 if declared_bundle_checksum != actual_bundle_checksum:
-    raise SystemExit(
+    mismatch = (
         "Lutris bundle checksum mismatch: "
         f"expected {actual_bundle_checksum}, got {declared_bundle_checksum}"
     )
+    if arguments.require_published_bundle_checksum:
+        raise SystemExit(mismatch)
+    print(
+        "NOTE: " + mismatch + ". The declared checksum belongs to the published "
+        "release asset; use --require-published-bundle-checksum before publishing."
+    )
+else:
+    print("Lutris bundle checksum matches the generated release archive.")
 
 with tarfile.open(archive, "r:gz") as source:
     members = {PurePosixPath(member.name): member for member in source.getmembers()}

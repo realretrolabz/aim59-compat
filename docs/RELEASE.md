@@ -14,6 +14,13 @@ Confirm there are no AOL/AIM binaries in Git history or the working tree.
 Review `lutris/aim-5.9.3861.yml` and confirm that its versioned GitHub URLs
 match the release tag.
 
+`make verify` validates the archive built from the working tree. After a
+release, normal documentation or source commits can legitimately produce a
+different unpublishable archive while the Lutris file continues to pin the
+immutable published asset. `make release` additionally requires the generated
+archive checksum to match the checksum declared in the Lutris file; run it as
+the final pre-publish gate from the intended release commit.
+
 ## Release assets
 
 For v0.1.3, upload the complete payload produced by `make release`:

@@ -158,4 +158,7 @@ drive.
 Before v0.1.3, `make verify` reached a known frozen-v0.1.2 Lutris
 release-package checksum gate after its shell, YAML, and Python checks. That
 was release metadata drift, not a native-EXE failure. The v0.1.3 Lutris file
-pins the checksum of the archive built from its matching source tag.
+pins the checksum of the archive built from its matching source tag. `make
+verify` now validates working-tree release structure without comparing it to a
+frozen published asset; `make release` performs that strict checksum comparison
+before publishing.

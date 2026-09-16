@@ -20,7 +20,7 @@ patcher:
 
 release: patcher
 	python3 scripts/build-release.py
-	python3 scripts/verify-release.py
+	python3 scripts/verify-release.py --require-published-bundle-checksum
 
 yaml:
 	python3 scripts/validate-yaml.py

@@ -69,6 +69,25 @@ class InstallerVerificationTests(unittest.TestCase):
 
 
 class ReleaseLayoutTests(unittest.TestCase):
+    def test_release_checksum_policy_is_strict_only_for_release_publish(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        verifier = (root / "scripts" / "verify-release.py").read_text(encoding="utf-8")
+        makefile = (root / "Makefile").read_text(encoding="utf-8")
+        repository_check = (root / "scripts" / "verify-repo.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("--require-published-bundle-checksum", verifier)
+        self.assertIn("if arguments.require_published_bundle_checksum:", verifier)
+        self.assertIn(
+            "verify-release.py --require-published-bundle-checksum", makefile
+        )
+        self.assertIn("python3 scripts/verify-release.py", repository_check)
+        self.assertNotIn(
+            "python3 scripts/verify-release.py --require-published-bundle-checksum",
+            repository_check,
+        )
+
     def test_adjacent_release_dll_is_selected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
