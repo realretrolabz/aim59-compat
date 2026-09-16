@@ -4,15 +4,27 @@
   "license": "MIT",
   "supported": {
     "aim": "5.9.3861",
-    "wine": "9.0",
+    "wine": [
+      "9.0",
+      "10.0"
+    ],
     "wine_arch": "win32",
     "windows_mode": "winxp"
   },
-  "published_mciwave": {
-    "path": "binaries/mciwave-wine9-x86-aim.dll",
-    "sha256": "23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0",
-    "license": "LGPL-2.1-or-later"
-  },
+  "published_mciwave": [
+    {
+      "wine": "9.0",
+      "path": "binaries/mciwave-wine9-x86-aim.dll",
+      "sha256": "23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0",
+      "license": "LGPL-2.1-or-later"
+    },
+    {
+      "wine": "10.0",
+      "path": "binaries/mciwave-wine10-x86-aim.dll",
+      "sha256": "17ba9b95d64fde4ad2d98abdbc623edaa7a66c6f3815221a16aa1f3d0fe30dd2",
+      "license": "LGPL-2.1-or-later"
+    }
+  ],
   "patcher": {
     "entrypoint": "aim59",
     "manifest": "manifests/aim-5.9.3861.json",

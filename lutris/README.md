@@ -32,6 +32,7 @@ The installer intentionally uses:
 - disabled `aimapi.dll`
 - native/builtin `mciwave` override
 - MCI and MCI32 WaveAudio mappings
+- XDG application-menu entry with an icon extracted from the installed AIM copy
 
 The YAML must not duplicate acquisition, prefix creation, installation, or
 the AIM-specific file and registry operations. Those belong to `aim59 setup`
@@ -40,5 +41,5 @@ so terminal and Lutris installs remain identical.
 The loose `.pyz` and DLL are Lutris implementation assets. Terminal users get
 the first-class `aim59-compat-0.1.1-linux.tar.gz` distribution instead.
 
-Do not remove the Wine 9.0 guard until the sound patch has been validated
-against another Wine version.
+Keep this release-pinned YAML on Wine 9.0 until a release contains both
+versioned DLLs and the Wine 10 repeated-sound runtime matrix is complete.

@@ -9,15 +9,21 @@ DIST_DIR="${DIST_DIR:-$ROOT/dist}"
 SOURCE_ARCHIVE="$CACHE_DIR/wine-$WINE_VERSION.tar.xz"
 SOURCE_DIR="$BUILD_ROOT/wine-$WINE_VERSION"
 BUILD_DIR="$BUILD_ROOT/wine-$WINE_VERSION-build-pe32"
-PATCH_FILE="$ROOT/patches/wine-9.0-mciwave-aim.patch"
-OUTPUT="$DIST_DIR/mciwave-wine9-x86-aim.dll"
+case "$WINE_VERSION" in
+    9.0|10.0)
+        WINE_SERIES="${WINE_VERSION%%.*}.0"
+        WINE_LABEL="${WINE_VERSION%%.*}"
+        ;;
+    *)
+        echo "Supported Wine source versions: 9.0, 10.0" >&2
+        exit 2
+        ;;
+esac
 
-if [[ "$WINE_VERSION" != "9.0" ]]; then
-    echo "This patch is validated only for Wine 9.0." >&2
-    exit 2
-fi
+PATCH_FILE="$ROOT/patches/wine-$WINE_VERSION-mciwave-aim.patch"
+OUTPUT="$DIST_DIR/mciwave-wine$WINE_LABEL-x86-aim.dll"
 
-for cmd in curl tar patch make python3 file strings i686-w64-mingw32-gcc; do
+for cmd in curl tar patch make python3 file strings flex bison m4 i686-w64-mingw32-gcc; do
     command -v "$cmd" >/dev/null 2>&1 || {
         echo "Missing required command: $cmd" >&2
         exit 1
@@ -29,7 +35,7 @@ mkdir -p "$CACHE_DIR" "$BUILD_ROOT" "$DIST_DIR"
 if [[ ! -f "$SOURCE_ARCHIVE" ]]; then
     echo "Downloading Wine $WINE_VERSION source..."
     curl -L --fail --show-error \
-        "https://dl.winehq.org/wine/source/9.0/wine-$WINE_VERSION.tar.xz" \
+        "https://dl.winehq.org/wine/source/$WINE_SERIES/wine-$WINE_VERSION.tar.xz" \
         -o "$SOURCE_ARCHIVE"
 fi
 
@@ -44,7 +50,9 @@ pushd "$BUILD_DIR" >/dev/null
 
 "$SOURCE_DIR/configure" \
     --enable-archs=i386 \
-    --disable-tests
+    --disable-tests \
+    --without-freetype \
+    --without-x
 
 make -j"$(nproc)" -C dlls/mciwave
 

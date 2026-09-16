@@ -23,6 +23,7 @@ python3 scripts/verify-release.py
 
 echo "Checking tracked published binary..."
 scripts/verify-mciwave.sh binaries/mciwave-wine9-x86-aim.dll --published
+scripts/verify-mciwave.sh binaries/mciwave-wine10-x86-aim.dll --published
 
 echo "Checking SHA256SUMS..."
 sha256sum -c checksums/SHA256SUMS
@@ -31,7 +32,7 @@ echo "Checking for proprietary AIM binaries..."
 bad=0
 while IFS= read -r -d '' f; do
     case "$f" in
-        ./binaries/mciwave-wine9-x86-aim.dll)
+        ./binaries/mciwave-wine9-x86-aim.dll|./binaries/mciwave-wine10-x86-aim.dll)
             ;;
         *)
             echo "Unexpected Windows executable/binary in repository: $f" >&2

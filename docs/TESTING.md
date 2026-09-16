@@ -9,6 +9,8 @@ Run against a fresh prefix created from the documented installer.
 - [ ] `aim59 setup` completes from a fresh terminal-created prefix
 - [ ] terminal release archive extracts and runs as `./aim59 setup`
 - [ ] terminal release automatically selects its adjacent patched DLL
+- [ ] AIM appears in the desktop application menu with its extracted icon
+- [ ] application-menu entry launches the configured prefix
 - [ ] terminal release archive contains no AOL/AIM binaries
 - [ ] Lutris downloads both project assets from the versioned GitHub Release
 - [ ] Lutris delegates successfully to `setup --source oldversion`
@@ -65,6 +67,13 @@ Confirmed in the reference setup:
 - buddy icons
 - chat
 - repeated notification sounds without hanging
+
+## Wine 10 candidate matrix
+
+Build and automated selection checks are complete. Before calling Wine 10 a
+known-good runtime, repeat every release-blocking AIM test above with Wine
+10.0, a fresh win32 prefix, and `mciwave-wine10-x86-aim.dll`. In particular,
+repeat 20 or more alternating send, receive, sign-on, and sign-off sounds.
 
 ## Regression rule
 

@@ -44,12 +44,14 @@ def default_cache() -> Path:
 
 
 def default_dll() -> Path:
-    adjacent = (
-        Path(sys.argv[0]).expanduser().resolve().parent
-        / "mciwave-wine9-x86-aim.dll"
-    )
-    if adjacent.is_file():
-        return adjacent
+    adjacent_dir = Path(sys.argv[0]).expanduser().resolve().parent
+    for filename in (
+        "mciwave-wine9-x86-aim.dll",
+        "mciwave-wine10-x86-aim.dll",
+    ):
+        adjacent = adjacent_dir / filename
+        if adjacent.is_file():
+            return adjacent
     return repository_root() / "binaries/mciwave-wine9-x86-aim.dll"
 
 
@@ -58,9 +60,13 @@ def path_value(value: str) -> Path:
 
 
 def print_banner(manifest: dict[str, Any]) -> None:
+    versions = [
+        value.removeprefix("wine-")
+        for value in manifest["wine"]["version_prefixes"]
+    ]
     print()
     print("AIM 5.9 Compatibility Patcher")
-    print(f"Target: {manifest['name']} {manifest['version']} / Wine 9.0")
+    print(f"Target: {manifest['name']} {manifest['version']} / Wine {' or '.join(versions)}")
     print()
 
 
@@ -172,6 +178,7 @@ def wine_options_from_args(args: argparse.Namespace) -> WineBackendOptions:
     return WineBackendOptions(
         prefix,
         patched_dll,
+        auto_select_patched_dll=not bool(args.patched_dll),
         wine=args.wine,
         wineboot=args.wineboot,
         wineserver=args.wineserver,
@@ -279,7 +286,10 @@ def command_verify_installer(args: argparse.Namespace, manifest: dict[str, Any])
 
 def add_backend_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--prefix", help=f"Wine prefix (default: {default_prefix()})")
-    parser.add_argument("--patched-dll", help="Path to patched Wine 9.0 mciwave DLL")
+    parser.add_argument(
+        "--patched-dll",
+        help="Path to the patched mciwave DLL matching the detected Wine version",
+    )
     parser.add_argument("--wine", default="wine", help="Wine command")
     parser.add_argument("--wineboot", default="wineboot", help="wineboot command")
     parser.add_argument("--wineserver", default="wineserver", help="wineserver command")
@@ -290,7 +300,7 @@ def add_backend_arguments(parser: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="aim59",
-        description="Install and patch AIM 5.9.3861 for Wine 9.0",
+        description="Install and patch AIM 5.9.3861 for Wine 9.0 or 10.0",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--manifest", type=path_value, help="Alternate version manifest")

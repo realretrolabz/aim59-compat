@@ -37,4 +37,17 @@ def load_manifest(path: Path | None = None) -> dict[str, Any]:
     missing = [key for key in required if key not in manifest]
     if missing:
         raise ManifestError(f"Manifest is missing: {', '.join(missing)}")
+
+    supported = manifest["wine"].get("version_prefixes")
+    variants = manifest["mciwave"].get("variants")
+    if not isinstance(supported, list) or not supported:
+        raise ManifestError("Manifest wine.version_prefixes must be a non-empty list")
+    if not isinstance(variants, dict):
+        raise ManifestError("Manifest mciwave.variants must be a mapping")
+    missing_variants = [version for version in supported if version not in variants]
+    if missing_variants:
+        raise ManifestError(
+            "Manifest is missing mciwave variants for: "
+            + ", ".join(missing_variants)
+        )
     return manifest

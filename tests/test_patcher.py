@@ -3,6 +3,8 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import io
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -26,7 +28,14 @@ class ManifestTests(unittest.TestCase):
     def test_supported_manifest(self) -> None:
         manifest = load_manifest()
         self.assertEqual(manifest["version"], "5.9.3861")
-        self.assertEqual(manifest["wine"]["version_prefix"], "wine-9.0")
+        self.assertEqual(
+            manifest["wine"]["version_prefixes"],
+            ["wine-9.0", "wine-10.0"],
+        )
+        self.assertEqual(
+            set(manifest["mciwave"]["variants"]),
+            {"wine-9.0", "wine-10.0"},
+        )
         self.assertEqual(len(manifest["installer"]["sha256"][0]), 64)
 
 
@@ -65,6 +74,16 @@ class ReleaseLayoutTests(unittest.TestCase):
             root = Path(temporary)
             launcher = root / "aim59"
             dll = root / "mciwave-wine9-x86-aim.dll"
+            launcher.touch()
+            dll.touch()
+            with patch("sys.argv", [str(launcher)]):
+                self.assertEqual(default_dll(), dll)
+
+    def test_adjacent_wine10_dll_can_seed_auto_selection(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            launcher = root / "aim59"
+            dll = root / "mciwave-wine10-x86-aim.dll"
             launcher.touch()
             dll.touch()
             with patch("sys.argv", [str(launcher)]):
@@ -262,6 +281,94 @@ class SystemIniTests(unittest.TestCase):
             self.assertEqual(result.count("waveaudio=mciwave.dll"), 1)
 
 
+class ApplicationMenuTests(unittest.TestCase):
+    def make_backend(self, root: Path) -> WineBackend:
+        return WineBackend(
+            load_manifest(),
+            root / "prefix",
+            root / "mciwave.dll",
+        )
+
+    def test_xdg_desktop_entry_launches_the_configured_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "AIM Prefix $test"
+            backend = self.make_backend(root)
+
+            with patch.dict(os.environ, {"XDG_DATA_HOME": str(root / "data")}):
+                backend.installer_menu_link.parent.mkdir(parents=True)
+                backend.installer_menu_link.touch()
+                matching, unrelated = backend.wine_generated_menu_entries
+                matching.parent.mkdir(parents=True)
+                matching.write_text(f"Exec={backend.prefix}\n", encoding="utf-8")
+                unrelated.parent.mkdir(parents=True, exist_ok=True)
+                unrelated.write_text("Exec=/another/prefix\n", encoding="utf-8")
+
+                def extract(_: list[str], **__: object) -> None:
+                    backend.application_icon.write_bytes(b"\x89PNG\r\n\x1a\nicon")
+
+                backend._run = Mock(side_effect=extract)
+                with contextlib.redirect_stdout(io.StringIO()):
+                    backend.install_menu_shortcut()
+                desktop_entry = backend.application_menu_entry
+                application_icon = backend.application_icon
+                self.assertFalse(matching.exists())
+                self.assertTrue(unrelated.is_file())
+
+            contents = desktop_entry.read_text(encoding="utf-8")
+            self.assertIn("Name=AOL Instant Messenger 5.9\n", contents)
+            self.assertIn('Exec=env "WINEPREFIX=', contents)
+            self.assertIn("\\$test/prefix", contents)
+            self.assertIn(f"Icon={application_icon}\n", contents)
+            self.assertIn(f"X-AIM59-Prefix={backend.prefix}\n", contents)
+            self.assertEqual(desktop_entry.stat().st_mode & 0o777, 0o644)
+            backend._run.assert_called_once_with(
+                [
+                    "wine",
+                    "winemenubuilder.exe",
+                    "-t",
+                    str(backend.installer_menu_link),
+                    str(application_icon),
+                ]
+            )
+
+    def test_removal_only_deletes_the_entry_for_this_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            backend = self.make_backend(root)
+            with patch.dict(os.environ, {"XDG_DATA_HOME": str(root / "data")}):
+                backend.application_menu_entry.parent.mkdir(parents=True)
+                backend.application_menu_entry.write_text(
+                    "[Desktop Entry]\nX-AIM59-Prefix=/another/prefix\n",
+                    encoding="utf-8",
+                )
+                backend.application_icon.parent.mkdir(parents=True)
+                backend.application_icon.write_bytes(b"icon")
+                backend.remove_menu_shortcut()
+                self.assertTrue(backend.application_menu_entry.is_file())
+                self.assertTrue(backend.application_icon.is_file())
+
+                backend.application_menu_entry.write_text(
+                    f"[Desktop Entry]\nX-AIM59-Prefix={backend.prefix}\n",
+                    encoding="utf-8",
+                )
+                backend.remove_menu_shortcut()
+                self.assertFalse(backend.application_menu_entry.exists())
+                self.assertFalse(backend.application_icon.exists())
+
+    def test_missing_installer_link_stops_icon_extraction(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backend = self.make_backend(Path(temporary))
+            backend._run = Mock()
+
+            with (
+                contextlib.redirect_stdout(io.StringIO()),
+                self.assertRaisesRegex(BackendError, "needed to extract"),
+            ):
+                backend.install_menu_shortcut()
+
+            backend._run.assert_not_called()
+
+
 class WineWorkflowRegressionTests(unittest.TestCase):
     def make_backend(self, root: Path) -> WineBackend:
         return WineBackend(
@@ -292,6 +399,108 @@ class WineWorkflowRegressionTests(unittest.TestCase):
                     call.verify_patched_dll(),
                 ],
             )
+
+    def test_installer_disables_only_automatic_wine_menu_conversion(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backend = self.make_backend(Path(temporary))
+            backend._run = Mock()
+            backend.stop_wine = Mock()
+            installer = Path(temporary) / "aim593861.exe"
+
+            with (
+                patch.dict(os.environ, {"WINEDLLOVERRIDES": "existing=n"}),
+                contextlib.redirect_stdout(io.StringIO()),
+            ):
+                backend.install_aim(installer)
+
+            backend._run.assert_called_once_with(
+                ["wine", str(installer)],
+                extra_env={
+                    "WINEDLLOVERRIDES": "existing=n;winemenubuilder.exe="
+                },
+            )
+            backend.stop_wine.assert_called_once_with()
+
+    def test_wine10_selects_the_matching_default_dll(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            backend = WineBackend(
+                load_manifest(),
+                root / "prefix",
+                root / "mciwave-wine9-x86-aim.dll",
+                auto_select_patched_dll=True,
+                dry_run=True,
+            )
+            detected = subprocess.CompletedProcess(
+                ["wine", "--version"],
+                0,
+                "wine-10.0 (Debian 10.0~repack-6)\n",
+                "",
+            )
+
+            with (
+                patch(
+                    "aim59_compat.backends.wine.shutil.which",
+                    return_value="/usr/bin/tool",
+                ),
+                patch(
+                    "aim59_compat.backends.wine.subprocess.run",
+                    return_value=detected,
+                ),
+            ):
+                self.assertEqual(
+                    backend.check_tools(require_winetricks=False),
+                    "wine-10.0 (Debian 10.0~repack-6)",
+                )
+
+            self.assertEqual(backend.wine_version_prefix, "wine-10.0")
+            self.assertEqual(
+                backend.patched_dll,
+                root / "mciwave-wine10-x86-aim.dll",
+            )
+
+    def test_unsupported_wine_version_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backend = self.make_backend(Path(temporary))
+            detected = subprocess.CompletedProcess(
+                ["wine", "--version"], 0, "wine-11.0\n", ""
+            )
+
+            with (
+                patch(
+                    "aim59_compat.backends.wine.shutil.which",
+                    return_value="/usr/bin/tool",
+                ),
+                patch(
+                    "aim59_compat.backends.wine.subprocess.run",
+                    return_value=detected,
+                ),
+                self.assertRaisesRegex(BackendError, "Wine 9.0 or 10.0"),
+            ):
+                backend.check_tools(require_winetricks=False)
+
+    def test_missing_debian_wine32_is_reported_before_prefix_work(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backend = self.make_backend(Path(temporary))
+            detected = subprocess.CompletedProcess(
+                ["wine", "--version"],
+                0,
+                "wine-10.0 (Debian 10.0~repack-6)\n",
+                "it looks like wine32 is missing, you should install it.\n",
+            )
+
+            with (
+                patch(
+                    "aim59_compat.backends.wine.shutil.which",
+                    return_value="/usr/bin/tool",
+                ),
+                patch(
+                    "aim59_compat.backends.wine.subprocess.run",
+                    return_value=detected,
+                ),
+                self.assertRaisesRegex(BackendError, "sudo apt install wine32:i386"),
+            ):
+                backend.check_tools(require_winetricks=False)
 
     def test_wine_setup_operation_order_is_unchanged(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

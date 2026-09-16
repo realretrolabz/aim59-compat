@@ -1,6 +1,6 @@
 # Technical notes
 
-## AIM notification-sound failure under Wine 9.0
+## AIM notification-sound failure under Wine 9.0 and 10.0
 
 AIM 5.9.3861 successfully opens its WAV files, but notification sounds fail
 because AIM uses the legacy Windows Media Control Interface (MCI) `waveaudio`
@@ -12,7 +12,7 @@ Tracing showed AIM issuing `MCI_OPEN` with a flag set that includes:
 MCI_OPEN_SHAREABLE
 ```
 
-Wine 9.0's `WAVE_mciOpen()` contains:
+Wine 9.0 and Wine 10.0's `WAVE_mciOpen()` contain:
 
 ```c
 if (dwFlags & MCI_OPEN_SHAREABLE)
@@ -88,6 +88,27 @@ one AIM sound to play and then AIM became unresponsive.
 
 The project does not use or redistribute Microsoft `mciwave` binaries.
 
+## Linux application-menu integration
+
+The patcher writes a standard per-user XDG desktop entry at
+`$XDG_DATA_HOME/applications/aim59-compat.desktop` (defaulting to
+`~/.local/share/applications/aim59-compat.desktop`). During AIM installation,
+the patcher disables only Wine's automatic `winemenubuilder.exe` invocation;
+the installer still creates its Windows shortcuts. This prevents Wine and the
+desktop environment from creating duplicate or partially converted entries.
+When patching an existing prefix, stale Wine-generated AIM entries are removed
+only when their contents reference that exact prefix. The project-owned entry
+launches the selected Wine executable with the exact prefix and installed
+`aim.exe` paths.
+
+For the icon, Wine's `winemenubuilder.exe -t` mode reads the AIM
+installer-created shortcut and extracts the largest embedded icon from the
+user's installed `aim.exe` as a PNG under
+`$XDG_DATA_HOME/aim59-compat/icons/`. The repository does not contain or
+download AOL artwork. Setup verifies both the PNG signature and the completed
+desktop-entry contents. Rollback removes only entries marked as belonging to
+the same prefix.
+
 ## AIM 5.9.6089
 
 AIM 5.9.6089 was investigated but is not the v0.1 target. Under Wine it added
@@ -95,3 +116,10 @@ extra browser/NSS compatibility problems and a cosmetic buddy-icon-pane
 rendering artifact without a demonstrated feature benefit for this project.
 
 The supported reference client remains AIM 5.9.3861.
+
+## Wine 10 validation status
+
+The Wine 10.0 source patch applies cleanly, the PE32 DLL builds from the
+official Wine 10.0 archive, and the structural, marker, import, checksum, and
+patcher-selection tests pass. End-to-end AIM and repeated-sound validation is
+still required before Wine 10 replaces or joins Wine 9 as a known-good runtime.

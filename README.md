@@ -1,7 +1,8 @@
 # AIM 5.9 Compatibility Patcher
 
 Run **AOL Instant Messenger 5.9.3861** on Linux with Wine 9.0 through a
-guided terminal installer or a Lutris frontend.
+guided terminal installer or a Lutris frontend. The repository checkout also
+contains a build-verified Wine 10.0 patch candidate for runtime testing.
 
 The patcher downloads or accepts the original AIM installer, creates an
 isolated 32-bit Wine prefix, installs the required legacy runtime, and applies
@@ -19,13 +20,13 @@ The v0.1.x support target is deliberately narrow:
 | Component | Supported target |
 | --- | --- |
 | AIM | 5.9.3861 |
-| Wine | 9.0 |
+| Wine | 9.0 (runtime validated); 10.0 (build verified, runtime validation pending) |
 | Wine prefix | 32-bit (`win32`) |
 | Windows mode | Windows XP |
 | Legacy runtime | `mfc40` |
 | SuperBuddy | `sb.dll` registered with `regsvr32` |
 | `aimapi.dll` | renamed and disabled |
-| Notification audio | patched Wine 9.0 `mciwave.dll` |
+| Notification audio | version-matched patched Wine `mciwave.dll` |
 | DLL override | native, then builtin |
 
 The reference setup has been used for sign-in, buddy lists, IM send/receive,
@@ -40,10 +41,14 @@ explicitly.
 
 - Linux
 - Python 3.10 or newer
-- system Wine 9.0 with 32-bit support
+- system Wine 9.0 or 10.0 with 32-bit support
 - Winetricks
 - `cabextract`
 - a graphical session in which the AIM installer can run
+
+On Debian, `wine32:i386` must be installed. The patcher reports the exact
+package command before downloading AIM when Wine emits its missing-wine32
+warning.
 
 The terminal patcher checks Wine's version before creating or changing the
 prefix. Consult [INSTALL.md](docs/INSTALL.md) for the manual known-good recipe.
@@ -60,8 +65,10 @@ cd aim59-compat-0.1.1
 ./aim59 setup
 ```
 
-The bundle contains the terminal patcher and patched Wine DLL together, so no
-manual `--patched-dll` argument is required.
+The published v0.1.1 bundle contains the validated Wine 9 DLL. Bundles built
+from the current checkout contain both versioned DLLs and select the one that
+matches the detected Wine version, so no manual `--patched-dll` argument is
+required.
 
 ### 2. Lutris
 
@@ -205,7 +212,7 @@ If AIM 5.9.3861 is already installed under `C:\Program Files\AIM`:
 ./aim59 patch-prefix --prefix "$HOME/.wine-aim59"
 ```
 
-The prefix must already be 32-bit, use Wine 9.0, have Windows XP mode and
+The prefix must already be 32-bit, use Wine 9.0 or 10.0, have Windows XP mode and
 `mfc40` configured, and contain `aim.exe` and `sb.dll`. The legacy wrapper is
 still available and delegates to the same command:
 
@@ -234,7 +241,8 @@ patch state are missing. More targeted checks are documented in
 
 Rollback restores the saved prefix copy of `mciwave.dll`, restores the saved
 `system.ini`, removes the Wine `mciwave` override, and renames
-`aimapi.dll.disabled` back to `aimapi.dll` when possible. It does not uninstall
+`aimapi.dll.disabled` back to `aimapi.dll` when possible. It also removes the
+project-owned application-menu entry and extracted icon. It does not uninstall
 AIM, remove the prefix, remove `mfc40`, or unregister `sb.dll`.
 
 ## How the patcher works
@@ -250,7 +258,7 @@ Version manifest
        download and SHA-256 verification
                   |
                   v
-       Wine 9.0 / win32 environment check
+      Wine 9.0 or 10.0 / win32 environment check
                   |
                   v
      prefix + XP mode + mfc40 + AIM installer
@@ -291,6 +299,7 @@ The Wine backend applies these prefix-local changes:
 | Set `mciwave` to `native,builtin` | Loads the prefix DLL before Wine's builtin |
 | Set MCI and MCI32 WaveAudio mappings | Routes legacy WaveAudio calls correctly |
 | Update `[mci]` in `system.ini` | Preserves the legacy WaveAudio mapping |
+| Install an XDG application entry | Adds AIM to the Linux application menu |
 
 The patcher writes its state and `system.ini` backup under:
 
@@ -298,17 +307,18 @@ The patcher writes its state and `system.ini` backup under:
 <prefix>/.aim59-compat/
 ```
 
-The published patched DLL is pinned as:
+The patched DLLs are pinned as:
 
 ```text
-SHA-256: 23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0
+Wine 9.0:  23c52cbf2d9ebafc05a5abe10609a0ed49652445318ae8499bba2e1788c57df0
+Wine 10.0: 17ba9b95d64fde4ad2d98abdbc623edaa7a66c6f3815221a16aa1f3d0fe30dd2
 ```
 
 ### 4. Notification-sound fix
 
 AIM opens notification WAV files through the legacy MCI `waveaudio` device
-while passing `MCI_OPEN_SHAREABLE`. Wine 9.0 rejects that flag before the first
-open with `MCIERR_UNSUPPORTED_FUNCTION`.
+while passing `MCI_OPEN_SHAREABLE`. Wine 9.0 and 10.0 reject that flag before
+the first open with `MCIERR_UNSUPPORTED_FUNCTION`.
 
 The source patch removes only that early rejection. Wine's existing
 `nUseCount > 0` guard remains, so a real conflicting second open is still
@@ -330,9 +340,8 @@ This prevents Wine from substituting its installed builtin when the prefix
 copy is selected as native. The project does not use the old Windows XP
 `mciwave.dll` experiment, which played once and then caused AIM to hang.
 
-See [TECHNICAL.md](docs/TECHNICAL.md) for the detailed investigation and
-[wine-9.0-mciwave-aim.patch](patches/wine-9.0-mciwave-aim.patch) for the exact
-source change.
+See [TECHNICAL.md](docs/TECHNICAL.md) for the detailed investigation and the
+versioned patches in [`patches/`](patches/) for the exact source changes.
 
 ## Lutris frontend
 
@@ -395,21 +404,24 @@ Output:
 dist/aim59-compat-0.1.1-linux.tar.gz
 dist/aim59-patcher.pyz
 dist/mciwave-wine9-x86-aim.dll
+dist/mciwave-wine10-x86-aim.dll
 dist/aim-5.9.3861.yml
 dist/SHA256SUMS
 ```
 
-Rebuild the Wine 9.0 component from source:
+Rebuild both versioned components from source:
 
 ```bash
 make build
 scripts/verify-mciwave.sh dist/mciwave-wine9-x86-aim.dll
+scripts/verify-mciwave.sh dist/mciwave-wine10-x86-aim.dll
 ```
 
 Output:
 
 ```text
 dist/mciwave-wine9-x86-aim.dll
+dist/mciwave-wine10-x86-aim.dll
 ```
 
 Build dependencies and the release process are documented in
@@ -422,8 +434,8 @@ Build dependencies and the release process are documented in
 | `aim59` | Repository CLI entry point |
 | `aim59_compat/` | Shared orchestration, canonical Python engine, and Wine backend |
 | `manifests/` | Supported-version and installer identities |
-| `binaries/` | The one permitted prebuilt patched Wine DLL |
-| `patches/` | Corresponding Wine 9.0 source patch |
+| `binaries/` | Permitted versioned prebuilt patched Wine DLLs |
+| `patches/` | Corresponding versioned Wine source patches |
 | `lutris/` | Local and release Lutris frontends |
 | `scripts/` | Build, compatibility wrappers, and verification tools |
 | `tests/` | Patcher unit tests |

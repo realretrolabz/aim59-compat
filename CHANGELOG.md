@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add a Wine 10.0 source patch and build-verified PE32 `mciwave.dll` candidate.
+- Select the matching Wine 9.0 or 10.0 DLL automatically in terminal bundles.
+- Install a standard XDG application-menu entry and extract its icon from the
+  user's installed `aim.exe` without distributing AOL artwork.
+- Keep the published v0.1.1 Lutris installer pinned to its Wine 9.0 DLL until
+  a version containing both DLLs is released and Wine 10 runtime testing is
+  complete.
 - Separate shared setup, doctor, launch, and rollback orchestration from the
   Wine backend without changing the Linux or Lutris command surface.
 - Add internal build-target/host validation and reject platform mismatches.
