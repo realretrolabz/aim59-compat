@@ -16,10 +16,10 @@ match the release tag.
 
 ## Release assets
 
-For v0.1.2, upload the complete payload produced by `make release`:
+For v0.1.3, upload the complete payload produced by `make release`:
 
 ```text
-aim59-compat-0.1.2-linux.tar.gz
+aim59-compat-0.1.3-linux.tar.gz
 aim59-patcher.pyz
 mciwave-wine9-x86-aim.dll
 mciwave-wine10-x86-aim.dll
@@ -67,8 +67,8 @@ not need `install-aim59.ps1` beside it.
 Example:
 
 ```bash
-git tag -a v0.1.2 -m "AIM 5.9 Wine compatibility v0.1.2"
-git push origin v0.1.2
+git tag -a v0.1.3 -m "AIM 5.9 Wine compatibility v0.1.3"
+git push origin v0.1.3
 ```
 
 Create the release only after the tag and release assets have been reviewed.
@@ -76,13 +76,13 @@ Create the release only after the tag and release assets have been reviewed.
 ## GitHub CLI example
 
 ```bash
-gh release create v0.1.2 \
-  dist/aim59-compat-0.1.2-linux.tar.gz \
+gh release create v0.1.3 \
+  dist/aim59-compat-0.1.3-linux.tar.gz \
   dist/aim59-patcher.pyz \
   dist/mciwave-wine9-x86-aim.dll \
   dist/mciwave-wine10-x86-aim.dll \
   dist/aim-5.9.3861.yml \
   dist/SHA256SUMS \
-  --title "AIM 5.9 Compatibility v0.1.2" \
+  --title "AIM 5.9 Compatibility v0.1.3" \
   --notes "Terminal patcher for AIM 5.9.3861 with versioned Wine DLLs."
 ```

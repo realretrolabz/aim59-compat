@@ -155,8 +155,7 @@ the two-second polling/eight-second stable-file completion workaround. It is
 not part of the active EXE workflow, does not need to be copied to the thumb
 drive.
 
-`make verify` currently reaches the known, pre-existing frozen Lutris
-release-package checksum gate after its shell, YAML, and Python checks. The
-current source archive digest naturally changes when documentation or source
-changes, while the published v0.1.2 checksum remains frozen. This is a
-release-verification-policy blockage, not a native-EXE failure.
+Before v0.1.3, `make verify` reached a known frozen-v0.1.2 Lutris
+release-package checksum gate after its shell, YAML, and Python checks. That
+was release metadata drift, not a native-EXE failure. The v0.1.3 Lutris file
+pins the checksum of the archive built from its matching source tag.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.3 - 2026-09-15
+
 - Add a source-only, self-contained Windows Forms setup utility.
   Its compiled EXE is intentionally not tracked or packaged.
 - Port the observed Windows installer workflow into the native C# EXE:

@@ -1,5 +1,4 @@
-<!--
-
+```text
                             ████████▓
                          ▒█████████████
                         ████░░░░░░░░░████
@@ -30,8 +29,7 @@
                                  ███░░░░░███████
                                   █████████
                                    ███
-
--->
+```
 
 # AIM 5.9 Compatibility Patcher
 
@@ -92,15 +90,15 @@ prefix. Consult [INSTALL.md](docs/INSTALL.md) for the manual known-good recipe.
 
 ### 1. Terminal release
 
-Download `aim59-compat-0.1.2-linux.tar.gz` from the GitHub Release, then run:
+Download `aim59-compat-0.1.3-linux.tar.gz` from the GitHub Release, then run:
 
 ```bash
-tar -xzf aim59-compat-0.1.2-linux.tar.gz
-cd aim59-compat-0.1.2
+tar -xzf aim59-compat-0.1.3-linux.tar.gz
+cd aim59-compat-0.1.3
 ./aim59 setup
 ```
 
-The v0.1.2 bundle contains both versioned DLLs and selects the one that matches
+The v0.1.3 bundle contains both versioned DLLs and selects the one that matches
 the detected Wine version, so no manual `--patched-dll` argument is required.
 Wine 9.0 remains runtime validated; Wine 10.0 is available as a build-validated
 candidate while its repeated-sound runtime matrix is completed.
@@ -399,9 +397,9 @@ or 10.0, selects the matching bundled DLL, creates the win32 prefix, installs
 changes. The YAML does not duplicate that workflow.
 
 The YAML downloads one project-owned implementation asset from the versioned
-`v0.1.2` GitHub Release:
+`v0.1.3` GitHub Release:
 
-- `aim59-compat-0.1.2-linux.tar.gz`
+- `aim59-compat-0.1.3-linux.tar.gz`
 
 The bundle contains the canonical patcher and the Wine 9.0 and Wine 10.0
 patched DLLs, but it does not contain AIM. During installation, the patcher
@@ -441,7 +439,7 @@ make release
 Output:
 
 ```text
-dist/aim59-compat-0.1.2-linux.tar.gz
+dist/aim59-compat-0.1.3-linux.tar.gz
 dist/aim59-patcher.pyz
 dist/mciwave-wine9-x86-aim.dll
 dist/mciwave-wine10-x86-aim.dll

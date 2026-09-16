@@ -334,6 +334,7 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         self.assertIn("-target:winexe", self.exe_mono_build_script)
         self.assertIn("-win32icon:$ICON_PATH", self.exe_mono_build_script)
         self.assertIn("unexpected build output", self.exe_mono_build_script)
+        self.assertIn("rrlzAIM.exe.sha256", self.exe_mono_build_script)
         self.assertIn(".build/", self.gitignore)
         self.assertIn("aim593861.exe", self.gitignore)
         self.assertNotIn("aim*.exe", self.gitignore)

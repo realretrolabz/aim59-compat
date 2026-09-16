@@ -33,7 +33,7 @@ fi
 
 mkdir -p "$OUTPUT_DIRECTORY"
 
-unexpected="$(find "$OUTPUT_DIRECTORY" -maxdepth 1 -type f ! -name 'rrlzAIM.exe' -print -quit)"
+unexpected="$(find "$OUTPUT_DIRECTORY" -maxdepth 1 -type f ! -name 'rrlzAIM.exe' ! -name 'rrlzAIM.exe.sha256' -print -quit)"
 if [[ -n "$unexpected" ]]; then
     echo "Refusing to write beside unexpected build output: $unexpected" >&2
     exit 1

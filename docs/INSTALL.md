@@ -3,12 +3,12 @@
 ## Terminal release archive
 
 The primary terminal distribution contains the patcher and its versioned
-patched Wine DLLs together. The v0.1.2 archive contains the runtime-validated
+patched Wine DLLs together. The v0.1.3 archive contains the runtime-validated
 Wine 9 DLL and the build-validated Wine 10 candidate.
 
 ```bash
-tar -xzf aim59-compat-0.1.2-linux.tar.gz
-cd aim59-compat-0.1.2
+tar -xzf aim59-compat-0.1.3-linux.tar.gz
+cd aim59-compat-0.1.3
 ./aim59 setup
 ```
 

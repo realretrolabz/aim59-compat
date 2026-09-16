@@ -45,7 +45,7 @@ The YAML must not duplicate acquisition, prefix creation, installation, or
 the AIM-specific file and registry operations. Those belong to `aim59 setup`
 so terminal and Lutris installs remain identical.
 
-The complete `aim59-compat-0.1.2-linux.tar.gz` archive is used by both Lutris
+The complete `aim59-compat-0.1.3-linux.tar.gz` archive is used by both Lutris
 and terminal users. Loose `.pyz` and DLL release assets remain available for
 manual integration.
 

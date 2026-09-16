@@ -12,9 +12,9 @@ script:
 
   files:
   - aim59_bundle:
-      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.2/aim59-compat-0.1.2-linux.tar.gz
-      filename: aim59-compat-0.1.2-linux.tar.gz
-      checksum: 'sha256:fe2eb80203c6472acfc9e1599b7867818378dec54e3db77c62230b1d277ef611'
+      url: https://github.com/realretrolabz/aim59-compat/releases/download/v0.1.3/aim59-compat-0.1.3-linux.tar.gz
+      filename: aim59-compat-0.1.3-linux.tar.gz
+      checksum: 'sha256:648db8479d23739c4334ee408c67d5036555ddb785dfaca0bf5c6e79755f75bb'
 
   installer:
   - extract:
