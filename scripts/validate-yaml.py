@@ -21,6 +21,8 @@ for path in files:
     script = data["script"]
     if not isinstance(script, dict):
         raise SystemExit(f"{path}: script is not a mapping")
+    if data["runner"] != "linux":
+        raise SystemExit(f"{path}: must use the Linux runner for system Wine")
     for key in ("game", "installer"):
         if key not in script:
             raise SystemExit(f"{path}: missing script key {key!r}")
@@ -31,6 +33,18 @@ for path in files:
         raise SystemExit(f"{path}: does not extract the release-bundle alias")
     if 'python3 -u "$CACHE/aim59" setup' not in rendered:
         raise SystemExit(f"{path}: does not run the release-bundled patcher")
+    game = script["game"]
+    if game.get("exe") != "/usr/bin/env":
+        raise SystemExit(f"{path}: does not launch through the system environment")
+    launch_args = game.get("args", "")
+    if 'WINEPREFIX="$GAMEDIR/prefix" wine ' not in launch_args or not launch_args.endswith(
+        '/drive_c/Program Files/AIM/aim.exe"'
+    ):
+        raise SystemExit(f"{path}: does not launch AIM with system Wine")
+    if script.get("wine"):
+        raise SystemExit(f"{path}: contains a Lutris-managed Wine configuration")
+    if script.get("system", {}).get("disable_runtime") is not True:
+        raise SystemExit(f"{path}: must disable the Lutris runtime for system Wine")
     if "--patched-dll" in rendered:
         raise SystemExit(f"{path}: bypasses the patcher's version-aware DLL selection")
     bundle_files = [

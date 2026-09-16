@@ -2,13 +2,12 @@ name: AOL Instant Messenger 5.9
 game_slug: aim-5-9
 version: 5.9.3861 Wine 9.0 compatibility + Wine 10.0 test
 slug: aim-5-9-3861-wine-compat
-runner: wine
+runner: linux
 
 script:
   game:
-    exe: '$GAMEDIR/prefix/drive_c/Program Files/AIM/aim.exe'
-    prefix: $GAMEDIR/prefix
-    arch: win32
+    exe: /usr/bin/env
+    args: 'WINEPREFIX="$GAMEDIR/prefix" wine "$GAMEDIR/prefix/drive_c/Program Files/AIM/aim.exe"'
     working_dir: '$GAMEDIR/prefix/drive_c/Program Files/AIM'
 
   files:
@@ -32,8 +31,5 @@ script:
           --prefix "$GAMEDIR/prefix"
       disable_runtime: true
 
-  wine:
-    version: system
-    dxvk: false
-    overrides:
-      mciwave: n,b
+  system:
+    disable_runtime: true

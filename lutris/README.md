@@ -13,6 +13,12 @@ Release using the `$aim59_bundle` file alias, extracts the patcher and both
 versioned DLLs into Lutris's temporary cache, and runs the adjacent patcher.
 This works on Lutris 0.5.14 and newer without relying on `$SCRIPTDIR`.
 
+The installer uses Lutris's native Linux runner as a frontend for the user's
+system Wine. Lutris.net only accepts Wine builds present in its managed runner
+catalog, which does not provide the version-matched upstream Wine 9.0 or 10.0
+targets. The Linux runner invokes `/usr/bin/env` with the patched prefix and
+system `wine`, ensuring installation and launch use the same Wine family.
+
 Lutris calls the checkout's canonical `aim59 setup --source oldversion`
 engine. It downloads the pinned AIM installer from the unaffiliated
 OldVersion archive into Lutris's temporary cache, verifies it, creates the
@@ -25,6 +31,7 @@ unaffiliated OldVersion archive and verifies the pinned SHA-256.
 The installer intentionally uses:
 
 - system Wine
+- native Lutris Linux runner with the Lutris runtime disabled
 - Wine 9.0 or Wine 10.0 check with version-matched DLL selection
 - win32 prefix
 - Winetricks `winxp mfc40`
