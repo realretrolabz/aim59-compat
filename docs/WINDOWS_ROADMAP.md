@@ -1,6 +1,6 @@
 # Windows compatibility development roadmap
 
-Status updated on 2026-09-02. This document turns the Windows handoff into
+Status updated on 2026-09-13. This document turns the Windows handoff into
 bounded development stages. The intended working pattern is one fresh Codex
 thread per stage, with a written handoff before moving to the next stage.
 
@@ -77,8 +77,8 @@ At the end of every code or documentation stage:
 
 - [x] Stage 0: establish scope, definitions, and roadmap
 - [x] Stage 1: separate shared orchestration from the Wine backend
-- [ ] Stage 2: create the Windows discovery kit
-- [ ] Stage 3: capture the Windows 11 baseline
+- [x] Stage 2: create and validate the Windows discovery kit
+- [x] Stage 3: capture the Windows 11 baseline
 - [ ] Stage 4: isolate required native compatibility changes
 - [ ] Stage 5: select portable or installed delivery mode
 - [ ] Stage 6: implement the evidence-backed Windows backend
@@ -232,6 +232,17 @@ Windows equivalents.
 Produce safe, repeatable tools and instructions for observing AIM on the
 Windows 11 test machine before designing fixes.
 
+The Stage 2 kit is the read-only
+[`WINDOWS_DISCOVERY.md`](WINDOWS_DISCOVERY.md) procedure and its companion
+PowerShell collector. Its output is private evidence outside Git; the kit
+itself makes no native-Windows compatibility change or support claim.
+The implementation is present, but the current source tree's pre-existing
+Lutris release-checksum mismatch prevents `make verify` from completing; do
+not advance to a Windows observation run until that validation condition is
+resolved or explicitly accepted. The project owner explicitly accepted
+continuing the private Stage 3 observation while that release-reproducibility
+follow-up remains open.
+
 ### Work
 
 Create a PowerShell discovery tool that works with the Windows components
@@ -302,6 +313,10 @@ Document two test setups:
 Determine what unmodified AIM 5.9.3861 actually does on a clean Windows 11
 system.
 
+The completed baseline is recorded in the sanitized
+[`WINDOWS_FINDINGS.md`](WINDOWS_FINDINGS.md). It found a stock invisible-GUI
+failure and does not establish a native Windows fix.
+
 ### Preparation
 
 - Record the exact Windows edition, build, architecture, virtualization
@@ -341,11 +356,14 @@ which specific failures require isolation in Stage 4.
 
 ### Next-thread prompt
 
-> Read the project instructions, Windows handoff, roadmap through Stage 3, and
-> the Windows discovery-kit instructions. Help me execute or analyze only the
-> clean Windows 11 baseline. Do not prescribe fixes before the stock behavior
-> is recorded. Keep raw output and AIM files outside the repository, produce
-> sanitized findings, and end with a bounded experiment list for Stage 4.
+> Read `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/WINDOWS_HANDOFF.md`, this
+> roadmap, and `docs/WINDOWS_FINDINGS.md`. Perform only the Stage 4 proposal
+> gate: present a concrete Windows 11 experiment matrix that changes one
+> variable per restored `Pre-AIM` snapshot, names each exact reversible
+> mutation, registry view, privilege requirement, observation sequence, and
+> rollback. Do not edit the repository, run a VM experiment, or prescribe a
+> native Windows fix until I explicitly approve that proposal. Never use the
+> patched Wine `mciwave.dll`.
 
 ## Stage 4: isolate native compatibility requirements
 
@@ -369,6 +387,20 @@ Investigate only when the baseline justifies it:
 - test whether App Paths registration is needed
 - inspect native MCI behavior without introducing the Wine DLL
 - determine whether `mfc40` is already present or actually required
+
+### Current result
+
+The first approved one-variable test on the dedicated Windows 11 VM found that
+disabling `aimapi.dll` after a normal AIM 5.9.3861 installation produced a
+visible usable AIM window. No XP compatibility setting, `sb.dll` change,
+native MCI change, or Wine file was used in that successful launch. This is a
+sufficient launch workaround for that VM, not a completed Windows release
+matrix or a claim that every untested candidate is irrelevant.
+
+The project owner chose the installed workflow for the current prototype and
+asked for an EXE front end that delegates to the canonical PowerShell script.
+That bounded packaging follow-up is described in
+[`WINDOWS_EXE_HANDOFF.md`](WINDOWS_EXE_HANDOFF.md).
 
 For every successful change, record:
 

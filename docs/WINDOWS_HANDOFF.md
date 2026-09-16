@@ -1,6 +1,6 @@
 # Native Windows backend handoff
 
-Status updated on 2026-09-02. The released Linux/Wine implementation is
+Status updated on 2026-09-13. The released Linux/Wine implementation is
 `v0.1.1` at commit `29a8e03`; its Lutris installer has been submitted for
 review. Native Windows support remains planned and must not be advertised as
 working until it has passed the applicable clean-system gates. Windows 11 is
@@ -205,15 +205,114 @@ Recommended prompt for the next thread: Use the Stage 2 next-thread prompt in
   docs/WINDOWS_ROADMAP.md
 ```
 
+## Stage 2 handoff
+
+```text
+Stage completed: Stage 2 implementation - Windows discovery kit
+Approval status: Approved by the project owner on 2026-09-09
+Repository commit or working-tree state: Discovery collector, operator guide,
+  static tests, and inventory updates are present in the working tree; no
+  Windows compatibility backend or fix was added
+Tests run and results: 36 Linux Python tests passed, including eight collector
+  safety/static checks. make verify reached the release-package check but did
+  not pass: the current source-built 0.1.2 archive checksum differs from the
+  checksum pinned for the already-published Lutris asset. A clean HEAD archive
+  reproduces the same pre-existing mismatch; this Stage 2 change did not alter
+  the published release or its checksum declaration.
+Windows environment, if used: Dedicated clean Windows 11 Pro build 26200 VM,
+  x64 and elevated. An initial 00-clean collection was partial because the
+  collector mistook Windows Usb.dll for AIM's sb.dll; the filter was corrected
+  and must be rerun to obtain the valid baseline.
+External evidence location: Private external evidence volume; it remains
+  outside Git
+Sanitized findings added: None; no Windows behavior has been observed
+Decisions made: The collector requires an explicit, empty output directory;
+  records Registry64 and Registry32 views explicitly; captures targeted
+  metadata only; and supplies stable checkpoint comparisons. Stage 3 uses the
+  clean VM sequence in docs/WINDOWS_DISCOVERY.md without compatibility changes.
+Known failures or unanswered questions: A valid 00-clean snapshot is pending
+  after the collector correction. Clean Windows 11 installation and launch
+  behavior, required native changes, portable feasibility, and Open OSCAR
+  test-server capabilities remain untested
+Proprietary/private data check: The focused repository artifact check found no
+  AIM binary, installer, raw Windows evidence, or private test data. The full
+  verifier's later guard was not reached because its release-package check
+  stops first.
+Exact next stage: Resolve the pre-existing release-package verification policy
+  or metadata mismatch, then begin Stage 3 - Windows 11 baseline discovery
+Recommended prompt for the next thread: See below, after the validation issue
+  is resolved or explicitly accepted
+```
+
+## Stage 3 handoff
+
+```text
+Stage completed: Stage 3 - Windows 11 baseline discovery
+Approval status: The project owner approved private clean-VM execution on
+  2026-09-10 after accepting the separate release-reproducibility follow-up
+Repository commit or working-tree state: Sanitized findings, the Stage 3
+  handoff, and the Stage 4 proposal gate are present in the working tree. No
+  native Windows backend or compatibility fix was added.
+Tests run and results: 37 Linux Python tests passed, including the discovery
+  kit's safety and sanitized-findings checks. make verify remains blocked at
+  its known release-package checksum comparison: rebuilding source does not
+  reproduce the frozen v0.1.2 release asset checksum. The published Lutris
+  checksum was intentionally left unchanged.
+Windows environment, if used: Dedicated clean Windows 11 Pro build 26200 VM,
+  x64 and elevated; the powered-off Pre-AIM disk-only snapshot was restored
+  before the authoritative baseline. The separate evidence disk was outside
+  the system-disk snapshot chain.
+External evidence location: Private evidence volume outside Git, containing
+  the five authoritative checkpoints, four comparisons, and private operator
+  notes. Earlier partial/misordered runs are retained separately and were not
+  used for conclusions.
+Sanitized findings added: docs/WINDOWS_FINDINGS.md
+Decisions made: Stock first launch leaves aim.exe running without a visible
+  GUI. No required core feature was reachable. The forced process termination
+  is recorded as such. Installer-created COM and AppCompat state are
+  observations only, not proven fixes. Stage 4 is gated on an explicit
+  one-variable proposal.
+Known failures or unanswered questions: The cause of the invisible GUI;
+  whether any candidate compatibility operation is required; normal AIM exit;
+  all core online/sound features; strict portability; and the release-build
+  reproducibility follow-up remain unresolved.
+Proprietary/private data check: No AIM binary, installer, raw Windows output,
+  user path, screen name, server address, or private notes were added to Git.
+Exact next stage: Stage 4 - gated proposal for controlled native compatibility
+  experiments
+Recommended prompt for the next thread: See below
+```
+
+## Stage 4 prototype handoff
+
+```text
+Stage completed: Stage 4 initial launch-workaround isolation
+Approval status: The project owner approved the one-variable aimapi.dll test
+  and then selected an installed Windows workflow for the current prototype
+Repository commit or working-tree state: Windows installed backend script,
+  PowerShell Forms prototype, documentation, and static tests are present in
+  the working tree; no AIM file or compiled Windows executable is present
+Tests run and results: 40 Linux tests passed. make verify reaches the existing
+  frozen Lutris release-package checksum mismatch after shell/YAML/Python
+  validation; that mismatch predates this Windows work.
+Windows environment, if used: Dedicated Windows 11 VM. Normal installation
+  followed by disabling aimapi.dll produced a visible usable AIM window.
+External evidence location: Private VM/evidence storage outside Git.
+Sanitized findings added: docs/WINDOWS_FINDINGS.md and docs/WINDOWS_INSTALL.md
+Decisions made: aimapi.dll disabling is the smallest observed launch workaround
+  for this VM. No XP compatibility, sb.dll, native MCI, or Wine change is in
+  the installed script. The tool supports an OldVersion download or a verified
+  local installer and configurable AIM server settings. The source GUI delegates
+  entirely to the script backend.
+Known failures or unanswered questions: Windows runtime validation of the
+  scripts, full AIM core-feature/recovery tests, Windows 10, compiled EXE
+  packaging, and release-build reproducibility remain open.
+Proprietary/private data check: No AIM binary, installer, raw evidence,
+  screen name, or personal path was added to Git.
+Exact next stage: Implement and validate an EXE front end that delegates to the
+  canonical PowerShell backend; see docs/WINDOWS_EXE_HANDOFF.md.
+```
+
 ## Suggested prompt for the next thread
 
-> Read the project instructions and Stage 2 of
-> `docs/WINDOWS_ROADMAP.md`. First present a concrete Stage 2 proposal covering
-> files, behavior, safety boundaries, tests, and deliverables, then stop and
-> wait for explicit approval before editing anything. After approval, create
-> only the Windows discovery kit and its operator instructions. The kit must
-> be safe to author on Linux and execute on Windows 11, write all captured data
-> to an explicit external directory, distinguish 32-bit registry state, and
-> avoid copying AIM binaries into the repository. Do not implement Windows
-> compatibility fixes. Validate the repository and hand off the exact Windows
-> test procedure for Stage 3.
+> Use the copy-ready prompt in `docs/WINDOWS_EXE_HANDOFF.md`.

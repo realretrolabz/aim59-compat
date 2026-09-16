@@ -78,13 +78,16 @@ performs setup through its graphical workflow.
 
 ### 3. Native Windows
 
-The future Windows 11 backend is planned but is **not implemented or supported
-yet**. The preferred result is a no-install workflow in which AIM and its
-launcher create no AIM/project-specific host registry entries. If that proves
-infeasible, the accepted fallback will modify a normal AIM installation
-performed by the user. Windows 10 support requires separate validation. The
-staged feasibility and validation plan is documented in
-[WINDOWS_ROADMAP.md](docs/WINDOWS_ROADMAP.md).
+An experimental Windows 11 installed-compatibility script is available at
+[`scripts/windows/install-aim59.ps1`](scripts/windows/install-aim59.ps1).
+It downloads and verifies the pinned installer, runs AIM's ordinary installer,
+renames `aimapi.dll` to disable it, and configures a selectable OSCAR host and
+port. It is not portable and has not passed the full Windows release gate;
+Windows 10 is untested. See [WINDOWS_INSTALL.md](docs/WINDOWS_INSTALL.md) for
+use and rollback. A small Windows Forms wizard
+([`install-aim59-gui.ps1`](scripts/windows/install-aim59-gui.ps1)) invokes the
+same script backend. See [WINDOWS_ROADMAP.md](docs/WINDOWS_ROADMAP.md) for the
+remaining validation work.
 
 ## Repository quick start
 

@@ -33,7 +33,11 @@ docs/RELEASE.md
 docs/TECHNICAL.md
 docs/TESTING.md
 docs/TROUBLESHOOTING.md
+docs/WINDOWS_DISCOVERY.md
+docs/WINDOWS_EXE_HANDOFF.md
+docs/WINDOWS_FINDINGS.md
 docs/WINDOWS_HANDOFF.md
+docs/WINDOWS_INSTALL.md
 docs/WINDOWS_ROADMAP.md
 lutris/README.md
 lutris/aim-5.9.3861.yml
@@ -51,4 +55,8 @@ scripts/validate-yaml.py
 scripts/verify-mciwave.sh
 scripts/verify-release.py
 scripts/verify-repo.sh
+scripts/windows/collect-aim59-discovery.ps1
+scripts/windows/install-aim59.ps1
+scripts/windows/install-aim59-gui.ps1
 tests/test_patcher.py
+tests/test_windows_discovery.py

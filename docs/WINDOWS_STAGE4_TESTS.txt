@@ -1,0 +1,350 @@
+AIM 5.9.3861 on Windows 11 -- Stage 4 Test Guide
+==================================================
+
+Status: historical controlled-test procedure. The aimapi.dll-only launch test
+was run; the other candidates in this file were not needed for the selected
+installed prototype.
+
+This is a plain UTF-8 text file intended to be opened in Windows Notepad from
+a thumb drive. It describes the controlled tests proposed after the stock
+Windows 11 launch failure: aim.exe runs but never displays its GUI.
+
+The point is to learn which action(s), if any, a future Windows patcher would
+need to automate. This is not a supported Windows fix yet. Do not add a change
+that is not listed here, and never use the Wine mciwave.dll on Windows.
+
+
+1. WHAT STAYS THE SAME IN EVERY TEST
+------------------------------------
+
+Each test starts from the powered-off Pre-AIM VM snapshot. That is the main
+rollback mechanism. Do not use one test's installed VM as the starting point
+for the next test.
+
+For every test:
+
+  1. Restore Pre-AIM while the VM is powered off, then boot it.
+  2. Keep the evidence disk (E: in these examples) outside the VM system-disk snapshot chain.
+  3. Run the known AIM 5.9.3861 installer normally.
+  4. Apply exactly ONE test action, if the test has one.
+  5. Launch aim.exe directly, watch it for two minutes, and collect evidence.
+  6. Restore Pre-AIM again when the test is over.
+
+The installer and all evidence remain outside Git. Do not copy AIM files,
+installer files, discovery JSON, or personal notes into the repository.
+
+
+2. THUMB-DRIVE LAYOUT
+---------------------
+
+Copy these project files to the thumb drive:
+
+  E:\AIM59-Toolkit\collect-aim59-discovery.ps1
+  E:\AIM59-Toolkit\WINDOWS_STAGE4_TESTS.txt
+
+Keep the same known installer used for the baseline and all evidence on an
+external/private drive. These examples use:
+
+  E:\AIM59-Input\aim593861.exe
+  E:\AIM59-Evidence\stage4\
+
+If your actual installer location differs, change ONLY the $installer line in
+the setup block below. Do not change its filename or test a different AIM
+version.
+
+
+3. START AN ELEVATED POWERSHELL WINDOW
+--------------------------------------
+
+Open Windows PowerShell as Administrator. This keeps discovery comparable with
+the Stage 3 baseline and is required for the sb.dll registration tests. Start
+it with this command if you want the process-only execution-policy setting:
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass
+
+Then paste or type the following setup block once per test. Change $testId to
+the test ID you are about to run.
+
+  $toolkit = 'E:\AIM59-Toolkit'
+  $collector = Join-Path $toolkit 'collect-aim59-discovery.ps1'
+  $installer = 'E:\AIM59-Input\aim593861.exe'
+  $testId = 'E0-control'
+  $stage4EvidenceRoot = 'E:\AIM59-Evidence\stage4'
+  $run = Join-Path $stage4EvidenceRoot $testId
+
+  if (-not (Test-Path -LiteralPath $collector -PathType Leaf)) {
+      throw "Collector not found: $collector"
+  }
+  if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
+      throw "Installer not found: $installer"
+  }
+  if (Test-Path -LiteralPath $run) {
+      throw "Evidence folder already exists; choose a new test ID or restore the snapshot first: $run"
+  }
+  if (-not (Test-Path -LiteralPath $stage4EvidenceRoot -PathType Container)) {
+      New-Item -ItemType Directory -Path $stage4EvidenceRoot | Out-Null
+  }
+  New-Item -ItemType Directory -Path $run | Out-Null
+
+NOTE: Each collector output folder must be new. Do not reuse a previous test
+folder, even if it looks empty.
+
+
+4. COMMON TEST SEQUENCE
+-----------------------
+
+4.1 Capture the clean checkpoint
+
+  & $collector -OutputDirectory (Join-Path $run '00-clean') -Checkpoint '00-clean'
+  if ($LASTEXITCODE -ne 0) { throw '00-clean collection did not complete cleanly.' }
+
+4.2 Install AIM normally
+
+This opens the normal installer. Complete it with its normal choices. Do not
+set compatibility mode, register/unregister anything, delete a DLL, or use a
+shortcut's Compatibility tab during installation. If the installer offers to
+launch AIM when it finishes, clear that option. If it launches AIM anyway, end
+only the aim.exe process, note that fact privately, and then take the
+post-install checkpoint.
+
+  $installerProcess = Start-Process -FilePath $installer -Wait -PassThru
+  if ($installerProcess.ExitCode -ne 0) { throw "Installer failed: exit code $($installerProcess.ExitCode)" }
+
+Immediately collect post-install state:
+
+  & $collector -OutputDirectory (Join-Path $run '10-after-install') -Checkpoint '10-after-install'
+  if ($LASTEXITCODE -ne 0) { throw '10-after-install collection did not complete cleanly.' }
+
+Find aim.exe. These are the only two normal locations this guide assumes. If
+the installer used a different location, set $aimExe to its full path manually
+and make a private note of that path.
+
+  $aimCandidates = @(
+      @(
+          'C:\Program Files (x86)\AIM\aim.exe',
+          'C:\Program Files\AIM\aim.exe'
+      ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
+  )
+  if ($aimCandidates.Count -ne 1) {
+      throw 'Could not identify exactly one installed aim.exe; set $aimExe manually before continuing.'
+  }
+  $aimExe = $aimCandidates[0]
+  $aimDir = Split-Path -Path $aimExe -Parent
+  $sbDll = Join-Path $aimDir 'sb.dll'
+  $aimApiDll = Join-Path $aimDir 'aimapi.dll'
+  Write-Host "Testing installed AIM at: $aimExe"
+
+4.3 Apply the ONE action for the selected test
+
+Use exactly one action from section 5. E0 deliberately has no action. If a
+command errors, record the error in private evidence and stop that run. Do not
+substitute another command or alter Windows permissions to force it through.
+
+4.4 Launch and observe
+
+Launch the resolved executable directly. This deliberately bypasses App Paths
+and shortcuts, so neither can affect the result.
+
+  Start-Process -FilePath $aimExe
+
+For two minutes, record privately:
+
+  - 30, 60, and 120 second marks;
+  - whether an AIM window or sign-on screen is visibly present;
+  - any error dialog or elevation prompt; and
+  - whether aim.exe remains running without a visible window.
+
+Do not test sign-in, sound, or other AIM features in a no-GUI run. They are not
+reachable. Take the checkpoint while AIM is still running or immediately after
+the reproducible failure:
+
+  & $collector -OutputDirectory (Join-Path $run '20-after-first-launch') -Checkpoint '20-after-first-launch'
+  if ($LASTEXITCODE -ne 0) { throw '20-after-first-launch collection did not complete cleanly.' }
+
+If a visible GUI appeared, exit AIM normally and note whether it exits within
+one minute. If no visible GUI appeared, end only the AIM process after the
+120-second observation period:
+
+  Get-Process -Name 'aim' -ErrorAction SilentlyContinue | Stop-Process -Force
+
+In either case, collect post-exit state:
+
+  & $collector -OutputDirectory (Join-Path $run '30-after-aim-exit') -Checkpoint '30-after-aim-exit'
+  if ($LASTEXITCODE -ne 0) { throw '30-after-aim-exit collection did not complete cleanly.' }
+
+4.5 Create comparisons
+
+  & $collector -OutputDirectory (Join-Path $run 'compare-00-to-10') -BaselineDirectory (Join-Path $run '00-clean') -ComparisonDirectory (Join-Path $run '10-after-install')
+  & $collector -OutputDirectory (Join-Path $run 'compare-10-to-20') -BaselineDirectory (Join-Path $run '10-after-install') -ComparisonDirectory (Join-Path $run '20-after-first-launch')
+  & $collector -OutputDirectory (Join-Path $run 'compare-20-to-30') -BaselineDirectory (Join-Path $run '20-after-first-launch') -ComparisonDirectory (Join-Path $run '30-after-aim-exit')
+
+Check that each command ends with exit status 0. Do not put comparison JSON in
+Git. The raw output can include private paths and AIM metadata.
+
+4.6 Restore the VM
+
+Power off the VM. On the host, restore the powered-off Pre-AIM snapshot. Do not
+try to use the normal AIM uninstaller as a replacement for snapshot rollback.
+
+Boot the restored VM, reopen elevated PowerShell, and run this final checkpoint
+for the test you just completed. Replace <TEST-ID> with the same ID used above:
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'E:\AIM59-Toolkit\collect-aim59-discovery.ps1' -OutputDirectory 'E:\AIM59-Evidence\stage4\<TEST-ID>\40-after-uninstall-or-restore' -Checkpoint '40-after-uninstall-or-restore'
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'E:\AIM59-Toolkit\collect-aim59-discovery.ps1' -OutputDirectory 'E:\AIM59-Evidence\stage4\<TEST-ID>\compare-00-to-40' -BaselineDirectory 'E:\AIM59-Evidence\stage4\<TEST-ID>\00-clean' -ComparisonDirectory 'E:\AIM59-Evidence\stage4\<TEST-ID>\40-after-uninstall-or-restore'
+
+
+5. TEST ACTIONS
+----------------
+
+Run E0 first. If E0 does not reproduce the known invisible-GUI behavior, STOP.
+Do not run the other tests: the starting condition is no longer trustworthy.
+
+E0 -- CONTROL (no change)
+-------------------------
+
+Set this in the setup block:
+
+  $testId = 'E0-control'
+
+After section 4.2, make no change. Go straight to section 4.4. This confirms
+that a fresh Pre-AIM restore and normal install reproduce the Stage 3 result.
+
+
+E1 -- DISABLE aimapi.dll
+------------------------
+
+Set this in the setup block:
+
+  $testId = 'E1-aimapi-disabled'
+
+After section 4.2, run:
+
+  $disabledAimApi = Join-Path $aimDir 'aimapi.dll.stage4-disabled'
+  if (-not (Test-Path -LiteralPath $aimApiDll -PathType Leaf)) { throw "Missing: $aimApiDll" }
+  if (Test-Path -LiteralPath $disabledAimApi) { throw "Already exists: $disabledAimApi" }
+  Rename-Item -LiteralPath $aimApiDll -NewName 'aimapi.dll.stage4-disabled'
+
+This is a file test, not a registry test. No file is deleted. If Windows blocks
+the rename, record that and restore Pre-AIM; do not change ACLs or ownership.
+Snapshot restore is the rollback. If you want to restore within the same live
+run before powering down, use this simple inverse command only when aim.exe is
+not running:
+
+  Rename-Item -LiteralPath $disabledAimApi -NewName 'aimapi.dll'
+
+
+E2 -- XP SP3 COMPATIBILITY LAYER, Registry64
+---------------------------------------------
+
+Set this in the setup block:
+
+  $testId = 'E2-xp-layer-registry64'
+
+After section 4.2, run:
+
+  $appCompatPath = 'Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers'
+  $baseKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::CurrentUser, [Microsoft.Win32.RegistryView]::Registry64)
+  $layersKey = $baseKey.CreateSubKey($appCompatPath)
+  $oldValue = $layersKey.GetValue($aimExe, $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+  if ($null -ne $oldValue) { throw "An AppCompat layer already exists for $aimExe: $oldValue" }
+  $layersKey.SetValue($aimExe, 'WINXPSP3', [Microsoft.Win32.RegistryValueKind]::String)
+  $layersKey.Dispose()
+  $baseKey.Dispose()
+
+This is the registry equivalent of selecting Windows XP SP3 compatibility mode
+for aim.exe in the Compatibility tab. It changes only the per-user Layers
+value in the explicit 64-bit registry view. It does NOT write the automatic
+Compatibility Assistant Store.
+
+Restore Pre-AIM to roll this test back. Do not add a separate manual registry
+rollback step during this controlled run.
+
+
+E3 -- XP SP3 COMPATIBILITY LAYER, Registry32
+---------------------------------------------
+
+Set this in the setup block:
+
+  $testId = 'E3-xp-layer-registry32'
+
+Run the E2 command block unchanged EXCEPT for this one replacement:
+
+  [Microsoft.Win32.RegistryView]::Registry32
+
+This is a separate test. Do not write both views in one VM run.
+
+
+E4 -- RE-REGISTER sb.dll WITH 32-BIT regsvr32
+---------------------------------------------
+
+Set this in the setup block:
+
+  $testId = 'E4-sb-reregistered'
+
+After section 4.2, run:
+
+  if (-not (Test-Path -LiteralPath $sbDll -PathType Leaf)) { throw "Missing: $sbDll" }
+  & "$env:WINDIR\SysWOW64\regsvr32.exe" /s $sbDll
+  if ($LASTEXITCODE -ne 0) { throw "32-bit regsvr32 registration failed: exit code $LASTEXITCODE" }
+
+This uses the 32-bit regsvr32 deliberately. Its DLL-provided registration can
+change COM state in the 32-bit registry view. The discovery comparison records
+the actual resulting keys; do not manually add or delete CLSIDs.
+
+Snapshot restore is the rollback. This test requires elevation.
+
+
+E5 -- UNREGISTER sb.dll WITH 32-BIT regsvr32
+--------------------------------------------
+
+Set this in the setup block:
+
+  $testId = 'E5-sb-unregistered'
+
+After section 4.2, run:
+
+  if (-not (Test-Path -LiteralPath $sbDll -PathType Leaf)) { throw "Missing: $sbDll" }
+  & "$env:WINDIR\SysWOW64\regsvr32.exe" /u /s $sbDll
+  if ($LASTEXITCODE -ne 0) { throw "32-bit regsvr32 unregistration failed: exit code $LASTEXITCODE" }
+
+This also requires elevation. It is a diagnostic perturbation only, not a
+recommended fix. To reverse it inside the same live run, run the E4 command;
+otherwise restore Pre-AIM.
+
+
+6. NOT PART OF THIS PASS
+------------------------
+
+Do not add these while running E0-E5:
+
+  - install, replace, register, or disable mfc40.dll;
+  - copy any Wine DLL, especially the patched Wine mciwave.dll;
+  - add App Paths entries;
+  - hand-create COM keys, CLSIDs, or HKCU COM overrides;
+  - combine aimapi.dll removal with XP compatibility mode in the same run;
+  - move the AIM directory, edit Xpcs Registry.dat, or test sound.
+
+Those are either not justified by the no-GUI baseline or would combine
+variables. If the single-variable tests do not produce a GUI, a separate
+proposal can reproduce the community "remove aimapi.dll plus XP mode" recipe
+as a two-change test. It must be labeled as a combination test, not evidence
+that either change is individually required.
+
+
+7. HOW TO READ THE RESULT
+-------------------------
+
+No visible GUI in a test means only that the tested single action did not show
+evidence of fixing this failure on this VM. It does not prove that the action
+is universally useless.
+
+A visible GUI is a lead, not a release claim. Repeat that exact test from a
+fresh Pre-AIM snapshot before calling it reproducible. Only then can a later
+stage decide whether it belongs in the installed Windows backend, how to
+rollback it, and whether AIM's required online, sound, and persistence features
+also work.
+
+Keep the raw evidence private. A future repository finding should say only the
+sanitized observation, Windows build, test ID, and relevant registry/file
+operation. Never include copied AIM files, account data, full user paths, or
+raw discovery output.
