@@ -1,4 +1,11 @@
-# Native Windows backend handoff
+# Historical native Windows investigation handoff
+
+> Historical record. This document preserves the staged discovery and
+> PowerShell-prototype history through Stage 4. The active experimental
+> implementation is the self-contained C# `rrlzAIM.exe` source described in
+> [WINDOWS_EXE_HANDOFF.md](WINDOWS_EXE_HANDOFF.md) and
+> [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md). It does not use the archived
+> PowerShell script at runtime.
 
 Status updated on 2026-09-13. The released Linux/Wine implementation is
 `v0.1.1` at commit `29a8e03`; its Lutris installer has been submitted for
@@ -315,4 +322,10 @@ Exact next stage: Implement and validate an EXE front end that delegates to the
 
 ## Suggested prompt for the next thread
 
-> Use the copy-ready prompt in `docs/WINDOWS_EXE_HANDOFF.md`.
+The Stage 4 record above is historical. The current C# follow-up replaced the
+PowerShell Forms prototype and the thin-EXE design with source-only,
+self-contained `rrlzAIM.exe` build inputs. The archived script remains
+historical evidence, not an EXE dependency. See
+[`WINDOWS_EXE_HANDOFF.md`](WINDOWS_EXE_HANDOFF.md) for current implementation
+status and [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) for the pending Pre-AIM
+native-EXE test plan.

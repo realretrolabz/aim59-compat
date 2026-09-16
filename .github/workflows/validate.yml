@@ -25,3 +25,29 @@ jobs:
 
     - name: Repository validation
       run: make verify
+
+  windows-native-setup-build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Build experimental native Windows setup
+      shell: pwsh
+      run: .\scripts\windows\build-aim59-setup.ps1
+
+    - name: Confirm ignored build output
+      shell: pwsh
+      run: |
+        if (-not (Test-Path .build\windows-exe\rrlzAIM.exe)) {
+          throw 'rrlzAIM.exe was not produced in the ignored output directory.'
+        }
+        git check-ignore -q -- .build/windows-exe/rrlzAIM.exe
+        if ($LASTEXITCODE -ne 0) {
+          throw 'rrlzAIM.exe is not in an ignored build-output directory.'
+        }
+        $unexpectedOutput = @(Get-ChildItem -LiteralPath .build\windows-exe -File | Where-Object { $_.Name -ne 'rrlzAIM.exe' })
+        if ($unexpectedOutput) {
+          throw 'The native Windows setup build produced unexpected files.'
+        }

@@ -78,16 +78,20 @@ performs setup through its graphical workflow.
 
 ### 3. Native Windows
 
-An experimental Windows 11 installed-compatibility script is available at
-[`scripts/windows/install-aim59.ps1`](scripts/windows/install-aim59.ps1).
-It downloads and verifies the pinned installer, runs AIM's ordinary installer,
-renames `aimapi.dll` to disable it, and configures a selectable OSCAR host and
-port. It is not portable and has not passed the full Windows release gate;
-Windows 10 is untested. See [WINDOWS_INSTALL.md](docs/WINDOWS_INSTALL.md) for
-use and rollback. A small Windows Forms wizard
-([`install-aim59-gui.ps1`](scripts/windows/install-aim59-gui.ps1)) invokes the
-same script backend. See [WINDOWS_ROADMAP.md](docs/WINDOWS_ROADMAP.md) for the
-remaining validation work.
+`rrlzAIM.exe` (realretrolabz AIM Manager) is an experimental self-contained
+Windows 11 setup utility.
+Build its source from [`windows/AIM59Setup/`](windows/AIM59Setup/) on Windows;
+the resulting EXE downloads or validates the pinned original installer, runs
+it, waits for `aim.exe` and `aimapi.dll` to settle, disables `aimapi.dll`, and
+configures a selectable OSCAR host and port. It can reapply that server setting
+without reinstalling AIM and can start AIM's normal registered uninstaller. It
+is not portable and has not passed the native-Windows release gate; Windows 10
+is untested. The prior PowerShell proof-of-concept remains archived as
+historical source, not an EXE dependency. See
+[WINDOWS_INSTALL.md](docs/WINDOWS_INSTALL.md) for build, use, rollback, and
+Pre-AIM snapshot test instructions. See
+[WINDOWS_ROADMAP.md](docs/WINDOWS_ROADMAP.md) for the remaining validation
+work.
 
 ## Repository quick start
 
@@ -442,12 +446,14 @@ Build dependencies and the release process are documented in
 | `lutris/` | Local and release Lutris frontends |
 | `scripts/` | Build, compatibility wrappers, and verification tools |
 | `tests/` | Patcher unit tests |
+| `windows/AIM59Setup/` | Experimental self-contained native Windows setup source |
 | `docs/` | Architecture, installation, testing, and troubleshooting |
 
 The architecture and future backend boundary are described in
-[ARCHITECTURE.md](docs/ARCHITECTURE.md). Native Windows support is planned as
-a separate backend and is not currently claimed or implemented. Windows 11 is
-the initial target; Windows 10 requires its own validation.
+[ARCHITECTURE.md](docs/ARCHITECTURE.md). The experimental Windows 11 setup is a
+separate self-contained native C# EXE; it does not change the Python/Wine
+backend or Lutris workflow. Its earlier PowerShell proof-of-concept remains
+archived as historical source. Windows 10 requires its own validation.
 
 ## Licensing and third parties
 

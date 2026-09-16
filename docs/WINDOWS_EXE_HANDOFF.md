@@ -1,103 +1,119 @@
-# Windows EXE front-end handoff
+# Native Windows EXE implementation handoff
 
-Status: prepared 2026-09-13 for the next implementation thread.
+Status: source implementation updated 2026-09-14. A Windows build and fresh
+`Pre-AIM` runtime validation are still pending.
 
-## Completed before this handoff
+## Active direction
 
-The project owner selected an installed Windows 11 workflow for the current
-prototype. The canonical implementation is
-[`scripts/windows/install-aim59.ps1`](../scripts/windows/install-aim59.ps1).
-It downloads the pinned AIM 5.9.3861 installer from OldVersion or accepts a
-local original installer only after the same size and SHA-256 check. It runs
-the normal installer, renames `aimapi.dll` to
-`aimapi.dll.aim59-disabled`, and supports a reversible restore.
+`windows/AIM59Setup/` contains the active experimental Windows implementation:
+a small self-contained C# Windows Forms EXE targeting .NET Framework 4.8. It
+does not invoke PowerShell or require files beside `rrlzAIM.exe` at runtime.
+The older [`install-aim59.ps1`](../scripts/windows/install-aim59.ps1) remains
+in the repository only as archived proof-of-concept and historical validation
+source.
 
-The script offers a server choice: use the RealRetroLabz default, leave AIM's
-original server preference untouched, or set a custom OSCAR hostname and port.
-It writes only AIM's current-user global connection profile; existing
-per-screen-name profiles may override that setting.
+This direction supersedes the earlier thin-EXE/adjacent-PowerShell design. It
+does not alter the released Linux/Wine patcher or the Lutris installer.
 
-`scripts/windows/install-aim59-gui.ps1` is a Windows Forms prototype. It
-elevates, presents the installer and server choices, and invokes the canonical
-script with explicit parameters. It deliberately contains no independent
-download, hash-check, patch, registry, or rollback logic.
+## Native workflow
 
-The launch workaround was observed once on the dedicated Windows 11 VM:
-normal installation plus disabling `aimapi.dll` produced a visible, usable AIM
-window. No XP compatibility setting, `sb.dll` change, or Wine file was used.
-The wider Windows feature, recovery, and repeatability gates remain incomplete.
+The EXE requests UAC elevation, then presents:
 
-## Objective for the next thread
+- a fresh OldVersion download or a browsed local original AIM 5.9.3861
+  installer;
+- an unchecked option to remove only the exact `Free AOL & Unlimited Internet`
+  desktop shortcut after installation; and
+- `aim.realretrolabz.com:5190`, Keep AIM's existing server preference, or a
+  custom host and port; and
+- **Apply server setting**, **Restore aimapi.dll**, and **Uninstall AIM...**
+  actions.
 
-Replace the PowerShell GUI prototype with a user-facing Windows executable
-while keeping `install-aim59.ps1` as the sole installer and patch backend.
+Clicking **Install AIM** starts the selected download or verified local
+installer without an extra confirmation. If the setup workflow is already
+running, its close warning lets the user end this utility rather than trapping
+the window; any separately opened AIM installer must then be closed by the user
+and compatibility changes will not finish.
 
-The desired release layout is:
+For an OldVersion selection, it preserves the observed form/cookie POST flow,
+downloads to `%LOCALAPPDATA%\AIM59-Compat\installers`, reports byte progress,
+and verifies the pinned 8,715,352-byte SHA-256 identity before launching it. A
+browsed local installer receives the same identity verification. The request
+path explicitly uses TLS 1.2 so a Mono-built EXE does not inherit legacy .NET
+HTTPS defaults on first run.
 
-```text
-AIM59Setup.exe
-install-aim59.ps1
-README.txt or equivalent
+When selected, the desktop-shortcut cleanup runs after AIM's file-settle check,
+DLL rename, and server setting. It considers only the exact `.lnk` filename on
+the current-user and Public Desktop, reports removals or errors, and does not
+affect any other shortcut.
+
+The original AIM installer launcher may remain alive after the visible setup
+finishes, or it may exit before child installation work is done. Therefore the
+EXE does not use that launcher as the completion signal. It polls every two
+seconds for exactly one expected installed AIM directory containing `aim.exe`
+and `aimapi.dll`; both file size and UTC write time must remain unchanged for
+eight seconds before the EXE stops auto-launched AIM, renames `aimapi.dll` to
+`aimapi.dll.aim59-disabled`, and writes the selected current-user server
+setting. The wait has a 15-minute timeout and reports its current state.
+
+Restore leaves the server setting unchanged and refuses to overwrite an
+existing `aimapi.dll`. **Apply server setting** lets the selected external
+server value be reapplied without reinstalling AIM. The observed AIM Server
+settings page displays separate/stale state and writes its displayed value back
+to the registry immediately on **Save**, so reapply the EXE choice after using
+that page unless the desired host was saved there. **Uninstall AIM...** starts
+only a normal registered uninstaller: either an AIM-marked entry whose install
+location matches, or an entry whose direct uninstaller is inside the detected
+AIM installation or a subdirectory. Before launching it, the EXE restores its
+tool-owned `aimapi.dll` rename, refusing any conflicting DLL state. It does not
+use a shell or infer the uninstaller result. No AIM files are bundled with the
+EXE or committed to the repository.
+
+## Build and copy contract
+
+On Windows, run from a checkout:
+
+```powershell
+.\scripts\windows\build-aim59-setup.ps1
 ```
 
-The executable must locate its backend next to itself and fail clearly if it is
-missing. It must launch the backend elevated and display its completion or
-error result. It must offer the same choices as the PowerShell prototype:
+The reproducible build uses the installed .NET Framework C# compiler and writes
+only `.build\windows-exe\rrlzAIM.exe`. `.build/` is ignored. Do not commit
+the EXE, an AIM installer, installed AIM files, or private VM evidence.
 
-- OldVersion download or a browseable local original installer;
-- RealRetroLabz default, unchanged AIM setting, or custom host/port; and
-- `aimapi.dll` restore.
+For a Linux host with `mono-devel`,
+`./scripts/build-aim59-setup-mono.sh` cross-builds the same managed EXE to that
+ignored output. This is useful when the only Windows environment is a VM. It
+does not make Mono a Windows runtime test or replace the Windows-native CI
+build.
 
-## Constraints
-
-- Do not embed, download into the repository, or redistribute any AIM program
-  file or installer.
-- Do not reimplement download, hash validation, installation, patching,
-  registry writes, or rollback in the EXE. Delegate to the backend script.
-- Do not use Wine DLLs, `sb.dll` registration, or Windows XP compatibility
-  settings.
-- Keep the EXE source in the repository, but do not add a built `.exe` to Git.
-  The repository guard currently rejects tracked executables. A future release
-  package may contain the project-owned EXE only after its build and validation
-  policy is deliberately updated.
-- Preserve the Linux/Wine patcher and Lutris behavior.
-- Keep the experimental Windows status honest. Windows 10 and the full Windows
-  11 feature/recovery matrix are untested.
-
-## Recommended implementation approach
-
-Use a small C# Windows Forms project targeting a Windows 11-inbox .NET runtime
-or package a self-contained runtime only if that is demonstrated necessary.
-Prefer a straightforward side-by-side EXE plus PowerShell backend over a
-single-file extractor. The next thread must check the actual Windows build and
-runtime prerequisites before choosing the final target framework.
-
-Add a reproducible build command that writes only to an ignored output
-directory, then add Linux-runnable static tests and Windows runtime validation
-for the actual EXE-to-backend argument forwarding and elevation behavior.
-
-## Validation already run
-
-- 40 Linux unit/static tests passed.
-- `git diff --check` passed.
-- The repository file scan found only the two allowed Wine DLLs; no AIM binary
-  entered the pending change set.
-- `make verify` reached its known pre-existing failure at the frozen Lutris
-  release-package checksum comparison. Shell syntax, YAML, and all Python
-  tests ran before that point.
-- Neither PowerShell script nor a native EXE front end has yet received a
-  Windows runtime test.
-
-## Copy-ready next-thread prompt
+For a removable-drive test, copy only:
 
 ```text
-Read AGENTS.md, docs/WINDOWS_INSTALL.md, docs/WINDOWS_FINDINGS.md, and
-docs/WINDOWS_EXE_HANDOFF.md. Implement only the Windows EXE front end described
-there. Keep install-aim59.ps1 as the canonical backend; the EXE must delegate
-all download, validation, installation, patching, server configuration, and
-rollback work to that script. Do not add AIM files or a compiled EXE to Git, do
-not change Linux/Wine or Lutris behavior, and do not claim broad Windows
-support. Add a reproducible ignored-output build path, tests, and a Windows
-runtime-validation checklist. Run the applicable repository checks and report
-any existing verifier failure separately.
+<drive>:\AIM59-Test\
+  rrlzAIM.exe
+  WINDOWS_INSTALL.md (optional instructions)
 ```
+
+There is deliberately no `install-aim59.ps1` beside the EXE. The missing-backend
+error expected by the retired launcher design no longer applies.
+
+## Validation state and next test
+
+Linux static tests cover source-level UI choices, UAC, network-request and
+identity-verification components, file/registry mutation boundaries, stable
+completion detection, absence of PowerShell use, and the source-only build
+location. They do not compile or run the EXE on Windows.
+
+One Windows guest run of the archived PowerShell proof-of-concept completed the
+installer detection workaround and rollback. That is behavioral reference,
+not native-EXE validation. The required test is the full fresh-snapshot plan in
+[WINDOWS_INSTALL.md](WINDOWS_INSTALL.md#required-pre-aim-thumb-drive-tests)
+and [TESTING.md](TESTING.md#experimental-native-windows-setup). Until it is
+performed, make no claim of working EXE behavior, broad Windows support,
+Windows 10 support, feature coverage, recovery, or repeatability.
+
+`make verify` has a distinct, known pre-existing failure at the frozen Lutris
+release-package checksum comparison. The Python, shell, and YAML checks run
+before it; source/documentation changes naturally change a rebuilt archive
+while the published v0.1.2 checksum remains frozen. This is a release-policy
+blocker, not a failure caused by the native EXE implementation.

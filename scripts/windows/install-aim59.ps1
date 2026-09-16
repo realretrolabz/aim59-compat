@@ -1,4 +1,9 @@
 <#
+.NOTES
+ARCHIVED PROOF OF CONCEPT. This script records the validated native-Windows
+workflow that preceded the self-contained rrlzAIM.exe implementation. It is
+not invoked by the EXE or distributed as part of the active Windows workflow.
+
 .SYNOPSIS
 Installs AIM 5.9.3861 on Windows 11 and applies the tested compatibility fix.
 
@@ -52,6 +57,16 @@ $DisabledAimApiName = 'aimapi.dll.aim59-disabled'
 $AimRegistryServerKey = 'HKCU:\Software\America Online\AOL Instant Messenger (TM)\CurrentVersion\Server'
 $DefaultServerHost = 'aim.realretrolabz.com'
 $DefaultServerPort = 5190
+$InstallerCompletionTimeoutSeconds = 900
+$InstallerCompletionPollSeconds = 2
+$InstallerFileSettleSeconds = 8
+
+function Write-Status {
+    param([Parameter(Mandatory = $true)][string]$Message)
+
+    [Console]::Out.WriteLine($Message)
+    [Console]::Out.Flush()
+}
 
 function Test-IsAdministrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -113,6 +128,76 @@ function Assert-InstallerIdentity {
     }
 }
 
+function Invoke-OldVersionDownload {
+    param(
+        [Parameter(Mandatory = $true)][Uri]$Uri,
+        [Parameter(Mandatory = $true)][object]$Session,
+        [Parameter(Mandatory = $true)][string]$CsrfToken,
+        [Parameter(Mandatory = $true)][string]$DestinationPath
+    )
+
+    [byte[]]$requestBody = [Text.Encoding]::UTF8.GetBytes(
+        'csrfmiddlewaretoken=' + [Uri]::EscapeDataString($CsrfToken)
+    )
+    [Net.HttpWebRequest]$request = [Net.HttpWebRequest]::Create($Uri)
+    $request.Method = 'POST'
+    $request.CookieContainer = $Session.Cookies
+    $request.ContentType = 'application/x-www-form-urlencoded'
+    $request.ContentLength = $requestBody.Length
+    $request.Referer = $InstallerPageUrl
+    $request.UserAgent = 'aim59-compat/0.2'
+
+    $requestStream = $null
+    $response = $null
+    $responseStream = $null
+    $destinationStream = $null
+    try {
+        $requestStream = $request.GetRequestStream()
+        $requestStream.Write($requestBody, 0, $requestBody.Length)
+        $requestStream.Dispose()
+        $requestStream = $null
+
+        $response = $request.GetResponse()
+        $responseStream = $response.GetResponseStream()
+        $destinationStream = [IO.File]::Open(
+            $DestinationPath,
+            [IO.FileMode]::Create,
+            [IO.FileAccess]::Write,
+            [IO.FileShare]::None
+        )
+
+        [byte[]]$buffer = New-Object byte[] 65536
+        [int64]$downloadedBytes = 0
+        [int]$currentPercent = 0
+        [int]$nextProgressPercent = 5
+        Write-Status "Download progress: 0% (0 of $InstallerSize bytes)"
+
+        while (($read = $responseStream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+            $destinationStream.Write($buffer, 0, $read)
+            $downloadedBytes += $read
+            [int]$currentPercent = [Math]::Min(
+                100,
+                [Math]::Floor((100 * $downloadedBytes) / $InstallerSize)
+            )
+            if ($currentPercent -ge $nextProgressPercent) {
+                Write-Status "Download progress: $currentPercent% ($downloadedBytes of $InstallerSize bytes)"
+                $nextProgressPercent = $currentPercent + 5
+            }
+        }
+
+        if ($downloadedBytes -eq $InstallerSize -and $currentPercent -lt 100) {
+            Write-Status "Download progress: 100% ($downloadedBytes of $InstallerSize bytes)"
+        }
+        Write-Status "Download complete: $downloadedBytes bytes. Verifying identity."
+    }
+    finally {
+        if ($null -ne $destinationStream) { $destinationStream.Dispose() }
+        if ($null -ne $responseStream) { $responseStream.Dispose() }
+        if ($null -ne $response) { $response.Dispose() }
+        if ($null -ne $requestStream) { $requestStream.Dispose() }
+    }
+}
+
 function Get-VerifiedInstaller {
     param(
         [Parameter(Mandatory = $true)][string]$CacheDirectory,
@@ -122,7 +207,7 @@ function Get-VerifiedInstaller {
     if (-not [string]::IsNullOrWhiteSpace($SuppliedInstallerPath)) {
         $resolvedPath = [System.IO.Path]::GetFullPath($SuppliedInstallerPath)
         Assert-InstallerIdentity -Path $resolvedPath
-        Write-Host "Using verified local installer: $resolvedPath"
+        Write-Status "Using verified local installer: $resolvedPath"
         return $resolvedPath
     }
 
@@ -130,7 +215,7 @@ function Get-VerifiedInstaller {
     if (Test-Path -LiteralPath $installerPath -PathType Leaf) {
         try {
             Assert-InstallerIdentity -Path $installerPath
-            Write-Host "Using verified cached installer: $installerPath"
+            Write-Status "Using verified cached installer: $installerPath"
             return $installerPath
         }
         catch {
@@ -145,10 +230,7 @@ function Get-VerifiedInstaller {
     $temporaryPath = "$installerPath.part"
 
     try {
-        Invoke-WebRequest -Uri $downloadUri -Method Post -WebSession $oldVersionSession -Headers @{
-            'Referer' = $InstallerPageUrl
-            'User-Agent' = 'aim59-compat/0.2'
-        } -Body @{ csrfmiddlewaretoken = $form.CsrfToken } -OutFile $temporaryPath
+        Invoke-OldVersionDownload -Uri $downloadUri -Session $oldVersionSession -CsrfToken $form.CsrfToken -DestinationPath $temporaryPath
         Move-Item -LiteralPath $temporaryPath -Destination $installerPath -Force
         Assert-InstallerIdentity -Path $installerPath
     }
@@ -181,6 +263,54 @@ function Find-AimDirectory {
     return $matches[0]
 }
 
+function Wait-For-AimInstallation {
+    param(
+        [string]$RequestedDirectory,
+        [Parameter(Mandatory = $true)][System.Diagnostics.Process]$InstallerProcess
+    )
+
+    $deadline = (Get-Date).AddSeconds($InstallerCompletionTimeoutSeconds)
+    $nextStatus = Get-Date
+    $lastDiscoveryError = $null
+    $lastFileSignature = $null
+    $filesStableSince = $null
+
+    while ((Get-Date) -lt $deadline) {
+        if ($InstallerProcess.HasExited -and $InstallerProcess.ExitCode -ne 0) {
+            throw "AIM installer exited with code $($InstallerProcess.ExitCode)."
+        }
+
+        try {
+            $aimDirectory = Find-AimDirectory -RequestedDirectory $RequestedDirectory
+            $aimExe = Get-Item -LiteralPath (Join-Path $aimDirectory 'aim.exe') -Force
+            $aimApiPath = Join-Path $aimDirectory 'aimapi.dll'
+            $aimApi = Get-Item -LiteralPath $aimApiPath -Force
+            $fileSignature = "$($aimExe.Length):$($aimExe.LastWriteTimeUtc.Ticks):$($aimApi.Length):$($aimApi.LastWriteTimeUtc.Ticks)"
+            if ($fileSignature -ne $lastFileSignature) {
+                $lastFileSignature = $fileSignature
+                $filesStableSince = Get-Date
+            }
+            elseif ($null -ne $filesStableSince -and ((Get-Date) - $filesStableSince).TotalSeconds -ge $InstallerFileSettleSeconds) {
+                return $aimDirectory
+            }
+        }
+        catch {
+            $lastDiscoveryError = $_
+            $lastFileSignature = $null
+            $filesStableSince = $null
+        }
+
+        if ((Get-Date) -ge $nextStatus) {
+            Write-Status 'Waiting for the AIM installer to create stable aim.exe and aimapi.dll files. The compatibility changes will run automatically afterwards.'
+            $nextStatus = (Get-Date).AddSeconds(30)
+        }
+        Start-Sleep -Seconds $InstallerCompletionPollSeconds
+    }
+
+    $reason = if ($null -ne $lastDiscoveryError) { $lastDiscoveryError.Exception.Message } else { 'AIM was not found.' }
+    throw "AIM installation was not detected within $InstallerCompletionTimeoutSeconds seconds. $reason"
+}
+
 function Stop-Aim {
     Get-Process -Name 'aim' -ErrorAction SilentlyContinue | Stop-Process -Force
 }
@@ -195,11 +325,11 @@ function Disable-AimApi {
             throw "Both aimapi.dll and $DisabledAimApiName exist. Resolve this manually; no file was changed."
         }
         Rename-Item -LiteralPath $original -NewName $DisabledAimApiName
-        Write-Host "Disabled: $original"
+        Write-Status "Disabled: $original"
         return
     }
     if (Test-Path -LiteralPath $disabled -PathType Leaf) {
-        Write-Host "Already disabled: $disabled"
+        Write-Status "Already disabled: $disabled"
         return
     }
     throw "aimapi.dll was not found in $Directory"
@@ -217,7 +347,7 @@ function Restore-AimApi {
         throw "No AIM59-disabled aimapi.dll was found in $Directory."
     }
     Rename-Item -LiteralPath $disabled -NewName 'aimapi.dll'
-    Write-Host "Restored: $original"
+    Write-Status "Restored: $original"
 }
 
 function Set-AimServer {
@@ -229,7 +359,7 @@ function Set-AimServer {
     New-Item -Path $AimRegistryServerKey -Force | Out-Null
     New-ItemProperty -Path $AimRegistryServerKey -Name 'Host' -PropertyType String -Value $HostName -Force | Out-Null
     New-ItemProperty -Path $AimRegistryServerKey -Name 'Port' -PropertyType DWord -Value $Port -Force | Out-Null
-    Write-Host "Configured AIM server: $HostName`:$Port"
+    Write-Status "Configured AIM server: $HostName`:$Port"
 }
 
 function Read-ServerPort {
@@ -270,11 +400,10 @@ function Get-AimServerChoice {
             return [pscustomobject]@{ Apply = $true; Host = $HostName; Port = $Port }
         }
         'Prompt' {
-            Write-Host ''
-            Write-Host 'AIM server choice:'
-            Write-Host "  1. Use $DefaultServerHost`:$DefaultServerPort"
-            Write-Host '  2. Keep AIM default (login.oscar.aol.com:5190)'
-            Write-Host '  3. Enter another host and port'
+            Write-Status 'AIM server choice:'
+            Write-Status "  1. Use $DefaultServerHost`:$DefaultServerPort"
+            Write-Status '  2. Keep AIM default (login.oscar.aol.com:5190)'
+            Write-Status '  3. Enter another host and port'
             $choice = Read-Host 'Choice [1]'
             switch ($choice) {
                 '' { return [pscustomobject]@{ Apply = $true; Host = $DefaultServerHost; Port = $DefaultServerPort } }
@@ -304,18 +433,14 @@ if ($Rollback) {
     if ($PSCmdlet.ShouldProcess($resolvedAimDirectory, 'Restore aimapi.dll')) {
         Restore-AimApi -Directory $resolvedAimDirectory
     }
-    Write-Host 'AIM59 compatibility rollback completed. The AIM server preference was left unchanged.'
+    Write-Status 'AIM59 compatibility rollback completed. The AIM server preference was left unchanged.'
     exit 0
 }
 
 $installer = Get-VerifiedInstaller -CacheDirectory $InstallerCache -SuppliedInstallerPath $InstallerPath
-Write-Host "Starting the AIM installer: $installer"
-$installerProcess = Start-Process -FilePath $installer -Wait -PassThru
-if ($installerProcess.ExitCode -ne 0) {
-    throw "AIM installer exited with code $($installerProcess.ExitCode)."
-}
-
-$resolvedAimDirectory = Find-AimDirectory -RequestedDirectory $AimDirectory
+Write-Status "Starting the AIM installer: $installer"
+$installerProcess = Start-Process -FilePath $installer -PassThru
+$resolvedAimDirectory = Wait-For-AimInstallation -RequestedDirectory $AimDirectory -InstallerProcess $installerProcess
 $serverChoice = Get-AimServerChoice -Mode $ServerMode -HostName $ServerHost -Port $ServerPort
 Stop-Aim
 if ($PSCmdlet.ShouldProcess($resolvedAimDirectory, 'Disable aimapi.dll and apply the selected AIM server choice')) {
@@ -324,8 +449,8 @@ if ($PSCmdlet.ShouldProcess($resolvedAimDirectory, 'Disable aimapi.dll and apply
         Set-AimServer -HostName $serverChoice.Host -Port $serverChoice.Port
     }
     else {
-        Write-Host 'Left the existing AIM server preference unchanged.'
+        Write-Status 'Left the existing AIM server preference unchanged.'
     }
 }
 
-Write-Host "AIM 5.9.3861 is installed and patched. Launch: $(Join-Path $resolvedAimDirectory 'aim.exe')"
+Write-Status "AIM 5.9.3861 is installed and patched. Launch: $(Join-Path $resolvedAimDirectory 'aim.exe')"

@@ -66,3 +66,52 @@ The published starter binary has a fixed checksum recorded in
 `checksums/SHA256SUMS`. A local rebuild may have a different byte-for-byte
 hash depending on toolchain/build metadata; structural checks are therefore
 separate from the published-binary checksum check.
+
+## Build the experimental native Windows setup
+
+The Windows Forms source and native workflow are in `windows/AIM59Setup/`. It
+targets .NET Framework 4.8, which is compatible with the .NET Framework
+4.8/4.8.1 line included with Windows 11. Build it on Windows from the
+repository root:
+
+```powershell
+.\scripts\windows\build-aim59-setup.ps1
+```
+
+The command uses the installed .NET Framework C# compiler and writes the only
+compiled output here:
+
+```text
+.build\windows-exe\rrlzAIM.exe
+```
+
+`.build/` is ignored. Do not copy the EXE into the repository, `dist/`, a
+release asset, or a test fixture. The build script fails clearly if the C#
+compiler is absent. A Windows build and runtime check of this launcher remain
+required; source/static validation is not evidence of Windows runtime support.
+
+The EXE is a self-contained experimental Windows installer/patcher. It embeds
+the repository's multi-resolution setup icon and needs no adjacent PowerShell
+script. Its historical PowerShell proof-of-concept is retained in source but
+is not an EXE dependency; see
+[WINDOWS_INSTALL.md](WINDOWS_INSTALL.md).
+
+### Optional Linux cross-build
+
+On a Debian/Ubuntu Linux host, install Mono once:
+
+```bash
+sudo apt install mono-devel
+```
+
+Then build the same managed PE32 EXE with:
+
+```bash
+./scripts/build-aim59-setup-mono.sh
+```
+
+It writes the same ignored `.build/windows-exe/rrlzAIM.exe` output. This is
+useful when Windows runs only in a VM: copy the EXE to the guest or thumb drive
+for testing. Mono compilation does not validate the Windows runtime; retain the
+Windows PowerShell build as the Windows-native build/CI path and perform the
+required `Pre-AIM` guest tests before making a support claim.

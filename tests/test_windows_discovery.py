@@ -8,10 +8,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "windows" / "collect-aim59-discovery.ps1"
 INSTALLER_SCRIPT = ROOT / "scripts" / "windows" / "install-aim59.ps1"
-GUI_SCRIPT = ROOT / "scripts" / "windows" / "install-aim59-gui.ps1"
+EXE_SOURCE = ROOT / "windows" / "AIM59Setup" / "Program.cs"
+EXE_WORKFLOW = ROOT / "windows" / "AIM59Setup" / "NativeWorkflow.cs"
+EXE_PROJECT = ROOT / "windows" / "AIM59Setup" / "AIM59Setup.csproj"
+EXE_BUILD_SCRIPT = ROOT / "scripts" / "windows" / "build-aim59-setup.ps1"
+EXE_MONO_BUILD_SCRIPT = ROOT / "scripts" / "build-aim59-setup-mono.sh"
 DOCUMENTATION = ROOT / "docs" / "WINDOWS_DISCOVERY.md"
 FINDINGS = ROOT / "docs" / "WINDOWS_FINDINGS.md"
 INSTALL_DOCUMENTATION = ROOT / "docs" / "WINDOWS_INSTALL.md"
+EXE_HANDOFF = ROOT / "docs" / "WINDOWS_EXE_HANDOFF.md"
+README = ROOT / "README.md"
+GITIGNORE = ROOT / ".gitignore"
 
 
 class WindowsDiscoveryKitStaticTests(unittest.TestCase):
@@ -19,10 +26,17 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.script = SCRIPT.read_text(encoding="utf-8")
         cls.installer_script = INSTALLER_SCRIPT.read_text(encoding="utf-8")
-        cls.gui_script = GUI_SCRIPT.read_text(encoding="utf-8")
+        cls.exe_source = EXE_SOURCE.read_text(encoding="utf-8")
+        cls.exe_workflow = EXE_WORKFLOW.read_text(encoding="utf-8")
+        cls.exe_project = EXE_PROJECT.read_text(encoding="utf-8")
+        cls.exe_build_script = EXE_BUILD_SCRIPT.read_text(encoding="utf-8")
+        cls.exe_mono_build_script = EXE_MONO_BUILD_SCRIPT.read_text(encoding="utf-8")
         cls.documentation = DOCUMENTATION.read_text(encoding="utf-8")
         cls.findings = FINDINGS.read_text(encoding="utf-8")
         cls.install_documentation = INSTALL_DOCUMENTATION.read_text(encoding="utf-8")
+        cls.exe_handoff = EXE_HANDOFF.read_text(encoding="utf-8")
+        cls.readme = README.read_text(encoding="utf-8")
+        cls.gitignore = GITIGNORE.read_text(encoding="utf-8")
 
     def test_output_directory_is_explicit_and_guarded(self) -> None:
         self.assertRegex(
@@ -126,8 +140,9 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         self.assertNotIn("C:\\Users\\", self.findings)
         self.assertNotIn("F:\\AIM59-Input", self.findings)
 
-    def test_windows_installer_is_pinned_reversible_and_configurable(self) -> None:
+    def test_archived_windows_prototype_is_pinned_reversible_and_configurable(self) -> None:
         script = self.installer_script
+        self.assertIn("ARCHIVED PROOF OF CONCEPT", script)
         self.assertIn("$InstallerSize = 8715352", script)
         self.assertIn(
             "018438bf22672ee119e864d78f838a538ed067bb76296957a00e0c1080979af1",
@@ -137,8 +152,23 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         self.assertIn("Get-OldVersionDownloadForm", script)
         self.assertIn("[string]$InstallerPath", script)
         self.assertIn("Using verified local installer", script)
-        self.assertIn("Start-Process -FilePath $installer -Wait -PassThru", script)
+        self.assertIn("Start-Process -FilePath $installer -PassThru", script)
         self.assertIn("AIM installer exited with code", script)
+        self.assertIn("function Write-Status", script)
+        self.assertIn("[Console]::Out.Flush()", script)
+        self.assertNotIn("Write-Status ''", script)
+        self.assertIn("function Invoke-OldVersionDownload", script)
+        self.assertIn("Download progress:", script)
+        self.assertIn("Invoke-OldVersionDownload -Uri $downloadUri", script)
+        self.assertIn("function Wait-For-AimInstallation", script)
+        self.assertIn("$InstallerCompletionTimeoutSeconds = 900", script)
+        self.assertIn("$InstallerFileSettleSeconds = 8", script)
+        self.assertIn("stable aim.exe and aimapi.dll files", script)
+        self.assertIn("Start-Sleep -Seconds $InstallerCompletionPollSeconds", script)
+        self.assertIn(
+            "$resolvedAimDirectory = Wait-For-AimInstallation -RequestedDirectory $AimDirectory -InstallerProcess $installerProcess",
+            script,
+        )
         self.assertIn("aimapi.dll.aim59-disabled", script)
         self.assertIn("Rename-Item -LiteralPath $original", script)
         self.assertIn("[switch]$Rollback", script)
@@ -154,33 +184,171 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         self.assertNotIn("Copy-Item", script)
         self.assertNotIn("regsvr32", script.lower())
 
-    def test_windows_installer_documentation_preserves_scope_and_rollback(self) -> None:
+    def test_windows_installer_documentation_preserves_native_scope_and_restore(self) -> None:
         documentation = self.install_documentation
         self.assertIn("not portable", documentation)
         self.assertIn("aimapi.dll.aim59-disabled", documentation)
-        self.assertIn("-Rollback", documentation)
+        self.assertIn("Restore aimapi.dll", documentation)
         self.assertIn("aim.realretrolabz.com:5190", documentation)
         self.assertIn("Current evidence boundary", documentation)
-        self.assertIn("does not yet\nestablish all release-gate features", documentation)
+        self.assertIn("does not establish native-EXE behavior", documentation)
+        self.assertIn("does not locate, invoke, or require", documentation)
+        self.assertIn("Apply server setting", documentation)
+        self.assertIn("Uninstall AIM", documentation)
 
-    def test_windows_gui_delegates_to_the_canonical_installer_script(self) -> None:
-        script = self.gui_script
-        self.assertIn("install-aim59.ps1", script)
-        self.assertIn("Add-Type -AssemblyName System.Windows.Forms", script)
-        self.assertIn("Start-BackendProcess", script)
-        self.assertIn("-ServerMode", script)
-        self.assertIn("-Rollback", script)
-        self.assertIn("Use aim.realretrolabz.com:5190", script)
-        self.assertIn("Keep AIM's original server setting", script)
-        self.assertIn("Use another server:", script)
-        self.assertIn("Installer source", script)
-        self.assertIn("Download the verified installer from OldVersion.com", script)
-        self.assertIn("Use a local AIM 5.9.3861 installer:", script)
-        self.assertIn("-InstallerPath", script)
-        self.assertNotIn("Get-OldVersionDownloadForm", script)
-        self.assertNotIn("Get-FileHash", script)
-        self.assertNotIn("Rename-Item", script)
-        self.assertNotIn("New-ItemProperty", script)
+    def test_windows_exe_collects_choices_and_runs_the_native_workflow(self) -> None:
+        source = self.exe_source
+        self.assertIn("System.Windows.Forms", source)
+        self.assertIn("OpenFileDialog", source)
+        self.assertIn('Verb = "runas"', source)
+        self.assertIn("UseShellExecute = true", source)
+        self.assertIn("NativeErrorCode == 1223", source)
+        self.assertIn("NativeWorkflow.Install", source)
+        self.assertIn("NativeWorkflow.Restore", source)
+        self.assertIn("NativeWorkflow.ApplyServer", source)
+        self.assertIn("NativeWorkflow.StartUninstall", source)
+        self.assertIn("Use aim.realretrolabz.com:5190", source)
+        self.assertIn("Keep AIM's original server setting", source)
+        self.assertIn("Use another server:", source)
+        self.assertIn("Download the verified installer from OldVersion.com", source)
+        self.assertIn("Use a local original AIM 5.9.3861 installer:", source)
+        self.assertIn("Remove 'Free AOL && Unlimited Internet' desktop shortcut after installation", source)
+        self.assertIn("removeAolDesktopShortcut.Checked", source)
+        self.assertIn("Checked = false", source)
+        self.assertIn("Restore aimapi.dll", source)
+        self.assertIn("Apply server setting", source)
+        self.assertIn("Uninstall AIM...", source)
+        self.assertIn("Consolas", source)
+        self.assertIn("Color.FromArgb(0, 255, 0)", source)
+        self.assertIn("BackColor = Color.Black", source)
+        self.assertIn("███████", source)
+        self.assertIn("█████████████", source)
+        self.assertIn("Location = new Point(18, 4)", source)
+        self.assertIn("Size = new Size(1024, 121)", source)
+        self.assertIn("ClientSize = new Size(1060, 790)", source)
+        self.assertIn("Icon.ExtractAssociatedIcon(Application.ExecutablePath)", source)
+        self.assertIn('ApplicationName = "realretrolabz AIM Manager"', source)
+        self.assertIn("Text = Program.ApplicationName", source)
+        self.assertNotIn("Start the original AIM 5.9.3861 installer now?", source)
+        self.assertIn("MessageBoxButtons.YesNo", source)
+        self.assertIn("Close realretrolabz AIM Manager and stop its compatibility workflow?", source)
+        self.assertIn("details.AppendText(line)", source)
+        self.assertIn("BeginInvoke(action)", source)
+        self.assertIn("ProgressBar", source)
+        self.assertIn("ReportDownloadProgressFromWorker", source)
+        self.assertNotIn("DownloadEasterEgg", source)
+        self.assertRegex(
+            source,
+            re.compile(
+                r"if \(realRetroLabz\.Checked\)\s*\{\s*"
+                r"request\.ServerMode = ServerMode\.RealRetroLabz;",
+                re.DOTALL,
+            ),
+        )
+        self.assertRegex(
+            source,
+            re.compile(
+                r"else if \(keepAIMDefault\.Checked\)\s*\{\s*"
+                r"request\.ServerMode = ServerMode\.Keep;",
+                re.DOTALL,
+            ),
+        )
+        self.assertRegex(
+            source,
+            re.compile(
+                r"request\.ServerMode = ServerMode\.Custom;\s*"
+                r"request\.ServerHost = host;\s*"
+                r"request\.ServerPort = port;",
+                re.DOTALL,
+            ),
+        )
+        self.assertRegex(
+            source,
+            re.compile(
+                r"request\.InstallerSource = localInstaller\.Checked \? InstallerSource\.LocalFile : InstallerSource\.OldVersion;",
+                re.DOTALL,
+            ),
+        )
+
+    def test_windows_exe_has_a_native_installer_backend(self) -> None:
+        workflow = self.exe_workflow
+        self.assertIn('InstallerPageUrl = "https://www.oldversion.com/', workflow)
+        self.assertIn("InstallerSha256", workflow)
+        self.assertIn("SHA256.Create()", workflow)
+        self.assertIn("HttpWebRequest", workflow)
+        self.assertIn("CookieContainer", workflow)
+        self.assertIn("SecurityProtocolType.Tls12", workflow)
+        self.assertIn("Registry.CurrentUser.CreateSubKey", workflow)
+        self.assertIn("UninstallRegistryKey", workflow)
+        self.assertIn("RegistryView.Registry32", workflow)
+        self.assertIn("UninstallString", workflow)
+        self.assertIn("HasAimUninstallerMarker", workflow)
+        self.assertIn("IsPathWithinDirectory", workflow)
+        self.assertIn("RestoreAimApiForUninstall", workflow)
+        self.assertIn("Restored aimapi.dll before starting AIM's uninstaller", workflow)
+        self.assertIn("RemoveAolDesktopShortcut", workflow)
+        self.assertIn("Free AOL & Unlimited Internet.lnk", workflow)
+        self.assertIn("SpecialFolder.CommonDesktopDirectory", workflow)
+        self.assertIn("File.Delete(shortcutPath)", workflow)
+        self.assertIn("Searching registered AIM uninstall entries", workflow)
+        self.assertIn("(?<file>.+?\\.(?:exe|com))", workflow)
+        self.assertIn("RequireAimStopped", workflow)
+        self.assertIn("aimapi.dll.aim59-disabled", workflow)
+        self.assertIn("File.Move(original, disabled)", workflow)
+        self.assertIn("File.Move(disabled, original)", workflow)
+        self.assertIn("WaitForAimInstallation", workflow)
+        self.assertIn("InstallerCompletionPollMilliseconds = 2000", workflow)
+        self.assertIn("InstallerFileSettleSeconds = 8", workflow)
+        self.assertIn("aim.exe and aimapi.dll files", workflow)
+        self.assertIn("Process.Start", workflow)
+        self.assertNotIn("WaitForExit()", workflow)
+        self.assertNotIn("install-aim59.ps1", self.exe_source + workflow)
+        self.assertNotIn("powershell.exe", self.exe_source + workflow)
+
+    def test_windows_exe_project_and_build_output_are_source_only(self) -> None:
+        self.assertIn("<OutputType>WinExe</OutputType>", self.exe_project)
+        self.assertIn("<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>", self.exe_project)
+        self.assertIn("<AssemblyName>rrlzAIM</AssemblyName>", self.exe_project)
+        self.assertIn("<ApplicationIcon>assets\\aim59-setup.ico</ApplicationIcon>", self.exe_project)
+        self.assertIn("<Content Include=\"assets\\aim59-setup.ico\" />", self.exe_project)
+        self.assertIn(".build\\windows-exe", self.exe_project)
+        self.assertIn("windows\\AIM59Setup\\Program.cs", self.exe_build_script)
+        self.assertIn("windows\\AIM59Setup\\NativeWorkflow.cs", self.exe_build_script)
+        self.assertIn("windows\\AIM59Setup\\assets\\aim59-setup.ico", self.exe_build_script)
+        self.assertIn(".build\\windows-exe", self.exe_build_script)
+        self.assertIn("rrlzAIM.exe", self.exe_build_script)
+        self.assertIn("/target:winexe", self.exe_build_script)
+        self.assertIn("/win32icon:$iconPath", self.exe_build_script)
+        self.assertIn("csc.exe", self.exe_build_script)
+        self.assertIn("mono-csc", self.exe_mono_build_script)
+        self.assertIn("windows/AIM59Setup/Program.cs", self.exe_mono_build_script)
+        self.assertIn("windows/AIM59Setup/NativeWorkflow.cs", self.exe_mono_build_script)
+        self.assertIn("windows/AIM59Setup/assets/aim59-setup.ico", self.exe_mono_build_script)
+        self.assertIn('OUTPUT_PATH="$OUTPUT_DIRECTORY/rrlzAIM.exe"', self.exe_mono_build_script)
+        self.assertIn(".build/windows-exe", self.exe_mono_build_script)
+        self.assertIn("-target:winexe", self.exe_mono_build_script)
+        self.assertIn("-win32icon:$ICON_PATH", self.exe_mono_build_script)
+        self.assertIn("unexpected build output", self.exe_mono_build_script)
+        self.assertIn(".build/", self.gitignore)
+        self.assertIn("aim593861.exe", self.gitignore)
+        self.assertNotIn("aim*.exe", self.gitignore)
+
+    def test_windows_exe_documentation_keeps_validation_and_scope_honest(self) -> None:
+        for documentation in (
+            self.install_documentation,
+            self.exe_handoff,
+            self.readme,
+        ):
+            with self.subTest(documentation=documentation[:32]):
+                self.assertIn("rrlzAIM.exe", documentation)
+                self.assertIn("native", documentation.lower())
+        self.assertIn("Required Pre-AIM thumb-drive tests", self.install_documentation)
+        self.assertIn("Windows build and runtime check", self.install_documentation)
+        self.assertIn("does not establish native-EXE behavior", self.install_documentation)
+        self.assertIn("pre-existing", self.exe_handoff)
+        archived_gui = ROOT / "scripts" / "windows" / "install-aim59-gui.ps1"
+        self.assertTrue(archived_gui.exists())
+        self.assertIn("ARCHIVED PROOF OF CONCEPT", archived_gui.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

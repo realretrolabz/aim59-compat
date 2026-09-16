@@ -1,4 +1,11 @@
 <#
+.NOTES
+ARCHIVED PROOF OF CONCEPT. This PowerShell Forms prototype predates the
+self-contained rrlzAIM.exe implementation. It is retained only as
+historical source and is not part of the active Windows workflow.
+#>
+
+<#
 .SYNOPSIS
 Simple graphical front end for install-aim59.ps1.
 

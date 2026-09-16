@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- Add a source-only, self-contained experimental Windows Forms setup utility.
+  Its compiled EXE is intentionally not tracked or packaged.
+- Port the observed Windows installer workflow into the native C# EXE:
+  OldVersion/local installer acquisition and identity verification, stable-file
+  completion detection, reversible `aimapi.dll` handling, and selected server
+  configuration.
+- Preserve `install-aim59.ps1` as archived proof-of-concept source; it is no
+  longer an EXE dependency.
+- Add an optional Mono cross-build command for producing the ignored EXE from a
+  Linux host before transferring it to a Windows test VM.
+- Add installer-free server reapplication and registered-uninstaller launch
+  actions to the experimental EXE, and document AIM's observed Server-dialog
+  overwrite behavior.
+- Add a supplied black-and-green terminal-style banner and an explicit
+  close-workflow confirmation to the experimental EXE.
+- Embed the supplied multi-resolution AIM59 setup icon in the experimental EXE
+  and use it for the setup window.
+- Name the experimental Windows utility **realretrolabz AIM Manager** and its
+  ignored build output `rrlzAIM.exe`.
+- Let **Uninstall AIM...** recognize versioned AIM registry names, unquoted
+  executable paths with spaces, and a registered uninstaller in an AIM
+  subdirectory.
+- Restore the tool-owned `aimapi.dll` rename before **Uninstall AIM...** starts
+  AIM's normal uninstaller.
+- Add an unchecked opt-in cleanup for the exact `Free AOL & Unlimited
+  Internet.lnk` shortcut on the current-user and Public Desktop after install.
+
 ## 0.1.2 - 2026-09-05
 
 - Add a Wine 10.0 source patch and build-verified PE32 `mciwave.dll` candidate.

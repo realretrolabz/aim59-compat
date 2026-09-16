@@ -46,6 +46,7 @@ patches/wine-9.0-mciwave-aim.patch
 patches/wine-10.0-mciwave-aim.patch
 project.json
 scripts/apply-prefix-fixes.sh
+scripts/build-aim59-setup-mono.sh
 scripts/build-patcher.py
 scripts/build-mciwave.sh
 scripts/build-release.py
@@ -55,8 +56,13 @@ scripts/validate-yaml.py
 scripts/verify-mciwave.sh
 scripts/verify-release.py
 scripts/verify-repo.sh
+scripts/windows/build-aim59-setup.ps1
 scripts/windows/collect-aim59-discovery.ps1
-scripts/windows/install-aim59.ps1
 scripts/windows/install-aim59-gui.ps1
+scripts/windows/install-aim59.ps1
 tests/test_patcher.py
 tests/test_windows_discovery.py
+windows/AIM59Setup/AIM59Setup.csproj
+windows/AIM59Setup/NativeWorkflow.cs
+windows/AIM59Setup/Program.cs
+windows/AIM59Setup/assets/aim59-setup.ico

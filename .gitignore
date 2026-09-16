@@ -5,9 +5,14 @@ dist/
 *.tar.xz
 *.log
 
-# User-provided proprietary AIM files
+# Project-local Visual Studio output for the Windows launcher
+windows/AIM59Setup/bin/
+windows/AIM59Setup/obj/
+
+# User-provided proprietary AIM files. Keep these names exact so unrelated
+# project executables outside ignored build output remain visible to Git.
 aim593861.exe
-aim*.exe
+aim.exe
 AIM/
 *.ocm
 

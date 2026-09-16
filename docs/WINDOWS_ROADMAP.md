@@ -1,7 +1,15 @@
-# Windows compatibility development roadmap
+# Historical Windows compatibility development roadmap
 
-Status updated on 2026-09-13. This document turns the Windows handoff into
-bounded development stages. The intended working pattern is one fresh Codex
+> Superseded planning record. This staged roadmap documents the earlier
+> Python-backend/portable-delivery exploration. The project owner has selected
+> the experimental self-contained C# `rrlzAIM.exe` direction instead; its
+> active implementation and validation plan are in
+> [WINDOWS_EXE_HANDOFF.md](WINDOWS_EXE_HANDOFF.md) and
+> [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md). Preserve this roadmap as
+> historical context, not as instructions for the current EXE rollout.
+
+Status last updated on 2026-09-13. This document turns the Windows handoff into
+bounded development stages. The intended working pattern was one fresh Codex
 thread per stage, with a written handoff before moving to the next stage.
 
 ## Build-target model

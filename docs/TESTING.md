@@ -80,3 +80,86 @@ repeat 20 or more alternating send, receive, sign-on, and sign-off sounds.
 If a change affects the patched Wine DLL, repeat the 20+ sound-event test.
 A single successful sound is not sufficient; an earlier failed approach
 played once and then hung AIM.
+
+## Experimental native Windows setup
+
+The following checks are not complete release gates. They are the required
+Windows 11 plan for the experimental installed workflow. Restore the powered-off
+`Pre-AIM` snapshot before each independent run. Keep installers, installed AIM
+files, screenshots, raw logs, VM disks, and private evidence out of the
+repository.
+
+### Static and build checks
+
+- [x] Linux static tests cover the native C# workflow's installer identity,
+  download request flow, server choices, reversible DLL rename, stable-file
+  detection, UAC request, and source-only build contract.
+- [x] Linux static tests confirm that the active EXE source neither locates
+  nor launches `install-aim59.ps1` or `powershell.exe`.
+- [ ] On Windows, run
+  `.\scripts\windows\build-aim59-setup.ps1` in Windows PowerShell and confirm
+  that the only compiled file is `.build\windows-exe\rrlzAIM.exe`.
+- [ ] From a temporary folder containing only `rrlzAIM.exe`, confirm that it
+  starts normally. It must not require an adjacent PowerShell script.
+
+### Thumb-drive native-EXE workflow
+
+Build the EXE, then create a removable-drive test folder containing only
+project-owned files:
+
+```text
+<drive>:\AIM59-Test\
+  rrlzAIM.exe
+  WINDOWS_INSTALL.md (optional instructions)
+```
+
+Do not put an AIM installer in the repository or a project release. A local
+test installer, if used, must be separately obtained and remain outside the
+project; the EXE verifies it before use.
+
+- [ ] Sign in as the intended administrator account, restore `Pre-AIM`, and
+  run `rrlzAIM.exe` from the removable drive. Consent to UAC using that same
+  account so `%LOCALAPPDATA%` cache and the `HKCU` server setting belong to it.
+- [ ] Confirm denied UAC exits clearly without starting a download or
+  installer.
+- [ ] On separate clean-snapshot runs, test a fresh OldVersion download and a
+  browsed local original installer. Confirm visible byte progress for the new
+  download and clear download/identity errors when applicable.
+- [ ] On separate clean-snapshot runs, test RealRetroLabz, Keep, and Custom
+  host/port choices. Complete AIM's ordinary interactive installer. Confirm
+  details report the wait for stable installed `aim.exe` and `aimapi.dll`, even
+  when the original installer launcher exits early.
+- [ ] On one clean-snapshot install, select the default-off **Remove 'Free AOL
+  & Unlimited Internet' desktop shortcut after installation** option. Confirm
+  that it removes only that exact shortcut from the current-user and Public
+  Desktop when present.
+- [ ] After a reported success, confirm the observed
+  `aimapi.dll.aim59-disabled` state, then use **Restore aimapi.dll**. Confirm it
+  restores only the tool-owned file and leaves the server preference unchanged.
+- [ ] With AIM closed, test **Apply server setting** for RealRetroLabz and a
+  Custom host/port. Confirm it changes only the server values and does not
+  launch an installer. Saving AIM's own Server settings page should overwrite
+  that external value; reapply the EXE setting and record the next-launch
+  result.
+- [ ] On a separate restored snapshot, test **Uninstall AIM...**. Confirm it
+  restores its tool-owned `aimapi.dll` rename before starting only the normal
+  registered AIM uninstaller, then complete any destructive choices
+  deliberately. Do not infer an uninstall/recovery pass from the EXE merely
+  starting that process.
+- [ ] If AIM is visibly launched, record only the observed result. Do not treat
+  it as a full feature, recovery, repeatability, Windows 10, or broad-support
+  pass.
+
+### Historical PowerShell proof
+
+`scripts/windows/install-aim59.ps1` is retained as archived proof-of-concept
+source. It completed one direct Windows guest install and restore, including
+the two-second polling/eight-second stable-file completion workaround. It is
+not part of the active EXE workflow, does not need to be copied to the thumb
+drive, and does not replace the required native-EXE tests.
+
+`make verify` currently reaches the known, pre-existing frozen Lutris
+release-package checksum gate after its shell, YAML, and Python checks. The
+current source archive digest naturally changes when documentation or source
+changes, while the published v0.1.2 checksum remains frozen. This is a
+release-verification-policy blockage, not an experimental native-EXE failure.
