@@ -34,13 +34,18 @@
 # AIM 5.9 Compatibility Patcher
 
 Run **AOL Instant Messenger 5.9.3861** on Linux with Wine 9.0 through a
-guided terminal installer or a Lutris frontend. The repository checkout also
-contains a build-verified Wine 10.0 patch candidate for runtime testing.
+guided terminal installer or a Lutris frontend, or natively on **Windows 11**
+with `rrlzAIM.exe`, the realretrolabz AIM Manager setup utility. The repository
+checkout also contains a build-verified Wine 10.0 patch candidate for runtime
+testing.
 
-The patcher downloads or accepts the original AIM installer, creates an
-isolated 32-bit Wine prefix, installs the required legacy runtime, and applies
-the prefix-local fixes needed for AIM and repeated notification sounds. It
-does not replace or modify the system Wine installation.
+On Linux, the patcher downloads or accepts the original AIM installer, creates
+an isolated 32-bit Wine prefix, installs the required legacy runtime, and
+applies the prefix-local fixes needed for AIM and repeated notification sounds.
+It does not replace or modify the system Wine installation.
+
+The Windows 11 utility installs AIM, disables `aimapi.dll`, and configures the
+selected OSCAR server connection.
 
 This repository does not contain AOL/AIM program files. The installer can be
 selected locally, downloaded from a user-provided URL, or retrieved from a
