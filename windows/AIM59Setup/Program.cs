@@ -114,7 +114,7 @@ namespace AIM59Setup
 
             Text = Program.ApplicationName;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1060, 790);
+            ClientSize = new Size(1060, 803);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -159,15 +159,15 @@ namespace AIM59Setup
             {
                 Font = new Font(Font.FontFamily, 8.25F, FontStyle.Regular),
                 Location = new Point(18, 165),
-                Size = new Size(1024, 54),
-                Text = "Windows 10/11 AOL Instant Messenger installer/management tool (tested in Windows 11). This tool verifies the original installer, runs it, makes a reversible aimapi.dll compatibility change, and optionally sets the server of your choice in the registry.\r\nNote: Saving server changes in the AIM GUI overwrites that setting. Enter the server manually in AIM or run this tool again and select Apply Server Setting."
+                Size = new Size(1024, 67),
+                Text = "Windows 10/11 AOL Instant Messenger installer/management tool (tested in Windows 11). This tool verifies the original installer, runs it, makes a reversible aimapi.dll compatibility change, and optionally sets the server of your choice in the registry.\r\n\r\nNote: Install AIM applies the selected server setting. Saving server changes in the AIM GUI overwrites that setting; select Apply Server Setting to reapply it."
             };
             Controls.Add(summary);
 
             GroupBox installerGroup = new GroupBox
             {
                 Text = "Installer source",
-                Location = new Point(18, 231),
+                Location = new Point(18, 244),
                 Size = new Size(1024, 128)
             };
             Controls.Add(installerGroup);
@@ -220,7 +220,7 @@ namespace AIM59Setup
             GroupBox serverGroup = new GroupBox
             {
                 Text = "AIM server",
-                Location = new Point(18, 371),
+                Location = new Point(18, 384),
                 Size = new Size(1024, 146)
             };
             Controls.Add(serverGroup);
@@ -294,7 +294,7 @@ namespace AIM59Setup
 
             status = new Label
             {
-                Location = new Point(18, 530),
+                Location = new Point(18, 543),
                 Size = new Size(1024, 26),
                 Text = "Ready. Install AIM, apply a server setting, restore aimapi.dll, or start AIM's uninstaller.",
                 ForeColor = SystemColors.ControlText
@@ -303,7 +303,7 @@ namespace AIM59Setup
 
             downloadProgress = new ProgressBar
             {
-                Location = new Point(18, 560),
+                Location = new Point(18, 573),
                 Maximum = 100,
                 Minimum = 0,
                 Size = new Size(1024, 17),
@@ -314,14 +314,14 @@ namespace AIM59Setup
             Label detailsLabel = new Label
             {
                 AutoSize = true,
-                Location = new Point(18, 588),
+                Location = new Point(18, 601),
                 Text = "Setup status and details"
             };
             Controls.Add(detailsLabel);
 
             details = new TextBox
             {
-                Location = new Point(18, 610),
+                Location = new Point(18, 623),
                 Multiline = true,
                 ReadOnly = true,
                 ScrollBars = ScrollBars.Vertical,
@@ -331,7 +331,7 @@ namespace AIM59Setup
 
             applyServerButton = new Button
             {
-                Location = new Point(310, 740),
+                Location = new Point(310, 753),
                 Size = new Size(155, 30),
                 Text = "Apply server setting"
             };
@@ -340,7 +340,7 @@ namespace AIM59Setup
 
             restoreButton = new Button
             {
-                Location = new Point(477, 740),
+                Location = new Point(477, 753),
                 Size = new Size(142, 30),
                 Text = "Restore aimapi.dll"
             };
@@ -349,7 +349,7 @@ namespace AIM59Setup
 
             uninstallButton = new Button
             {
-                Location = new Point(631, 740),
+                Location = new Point(631, 753),
                 Size = new Size(145, 30),
                 Text = "Uninstall AIM..."
             };
@@ -358,7 +358,7 @@ namespace AIM59Setup
 
             installButton = new Button
             {
-                Location = new Point(788, 740),
+                Location = new Point(788, 753),
                 Size = new Size(112, 30),
                 Text = "Install AIM"
             };
@@ -368,7 +368,7 @@ namespace AIM59Setup
             closeButton = new Button
             {
                 DialogResult = DialogResult.Cancel,
-                Location = new Point(912, 740),
+                Location = new Point(912, 753),
                 Size = new Size(118, 30),
                 Text = "Close"
             };
