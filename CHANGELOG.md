@@ -26,6 +26,7 @@
 - Revise the README with separate Linux/Wine and native Windows support,
   requirements, installation, and implementation guidance; add the project
   disclaimer and Open OSCAR Server acknowledgment.
+- Confirm Wine 10.0 as runtime validated for the maintained Linux/Wine setup.
 
 ## 0.1.3 - 2026-09-15
 

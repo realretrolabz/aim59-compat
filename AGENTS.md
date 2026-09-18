@@ -13,8 +13,7 @@ third-party URL and must verify known downloads against the pinned manifest.
 ## Supported target for v0.1.x
 
 - AIM: 5.9.3861
-- Wine: 9.0 (runtime validated)
-- Wine: 10.0 (source/build validated; runtime validation pending)
+- Wine: 9.0 and 10.0 (runtime validated)
 - Prefix architecture: win32
 - Wine Windows version: Windows XP
 - Runtime: `mfc40`

@@ -77,12 +77,13 @@ Confirmed in the reference setup:
 - chat
 - repeated notification sounds without hanging
 
-## Wine 10 candidate matrix
+## Wine 10 regression matrix
 
-Build and automated selection checks are complete. Before calling Wine 10 a
-known-good runtime, repeat every release-blocking AIM test above with Wine
-10.0, a fresh win32 prefix, and `mciwave-wine10-x86-aim.dll`. In particular,
-repeat 20 or more alternating send, receive, sign-on, and sign-off sounds.
+Wine 10 is runtime validated in the maintained setup. For a fresh Wine 10.0
+prefix, repeat every release-blocking AIM test above with
+`mciwave-wine10-x86-aim.dll` after changes to the Wine DLL or patcher. In
+particular, repeat 20 or more alternating send, receive, sign-on, and sign-off
+sounds.
 
 ## Regression rule
 

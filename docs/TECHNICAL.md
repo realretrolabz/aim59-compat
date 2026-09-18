@@ -169,5 +169,7 @@ The supported reference client remains AIM 5.9.3861.
 
 The Wine 10.0 source patch applies cleanly, the PE32 DLL builds from the
 official Wine 10.0 archive, and the structural, marker, import, checksum, and
-patcher-selection tests pass. End-to-end AIM and repeated-sound validation is
-still required before Wine 10 replaces or joins Wine 9 as a known-good runtime.
+patcher-selection tests pass. AIM has also been run successfully in the
+maintained Wine 10 setup, so Wine 10 joins Wine 9 as a runtime-validated
+configuration. Keep the repeated-sound matrix in the test plan as a regression
+check after Wine DLL changes.

@@ -31,7 +31,7 @@ The v0.1.x support target is deliberately narrow.
 | --- | --- |
 | Host | Linux graphical session |
 | AIM | 5.9.3861 |
-| Wine | 9.0 (runtime validated); 10.0 (source/build validated, runtime validation pending) |
+| Wine | 9.0 and 10.0 (runtime validated) |
 | Wine prefix | 32-bit (`win32`) |
 | Wine Windows version | Windows XP |
 | Legacy runtime | `mfc40` |
@@ -113,8 +113,9 @@ Use the checkout directly while developing:
 
 The release bundle contains both versioned DLLs and selects the one that matches
 the detected Wine version, so no manual `--patched-dll` argument is required.
-Wine 9.0 remains runtime validated; Wine 10.0 is available as a build-validated
-candidate while its repeated-sound runtime matrix is completed.
+Wine 9.0 and Wine 10.0 are runtime validated. Keep the repeated-notification
+sound matrix in [TESTING.md](docs/TESTING.md) as a regression check after Wine
+DLL changes.
 
 ### Native Windows setup utility
 
