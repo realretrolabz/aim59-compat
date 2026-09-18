@@ -17,10 +17,10 @@ uploading release assets.
 
 ## Release assets
 
-For v0.1.3, upload the complete payload produced by `make release`:
+For v0.1.4, upload the complete payload produced by `make release`:
 
 ```text
-rrlzAIM-0.1.3-linux.tar.gz
+rrlzAIM-0.1.4-linux.tar.gz
 rrlzAIMlinux.pyz
 mciwave-wine9-x86-aim.dll
 mciwave-wine10-x86-aim.dll
@@ -45,7 +45,7 @@ $hash = (Get-FileHash .build\windows-exe\rrlzAIM.exe -Algorithm SHA256).Hash.ToL
 "$hash  rrlzAIM.exe" | Set-Content -NoNewline .build\windows-exe\rrlzAIM.exe.sha256
 ```
 
-For an initial Windows release, upload only:
+For v0.1.4, also upload these separately built Windows assets:
 
 ```text
 rrlzAIM.exe
@@ -66,8 +66,8 @@ not need `install-aim59.ps1` beside it.
 Example:
 
 ```bash
-git tag -a v0.1.3 -m "realretrolabz AIM Manager v0.1.3"
-git push origin v0.1.3
+git tag -a v0.1.4 -m "realretrolabz AIM Manager v0.1.4"
+git push origin v0.1.4
 ```
 
 Create the release only after the tag and release assets have been reviewed.
@@ -75,12 +75,21 @@ Create the release only after the tag and release assets have been reviewed.
 ## GitHub CLI example
 
 ```bash
-gh release create v0.1.3 \
-  dist/rrlzAIM-0.1.3-linux.tar.gz \
+gh release create v0.1.4 \
+  dist/rrlzAIM-0.1.4-linux.tar.gz \
   dist/rrlzAIMlinux.pyz \
   dist/mciwave-wine9-x86-aim.dll \
   dist/mciwave-wine10-x86-aim.dll \
   dist/SHA256SUMS \
-  --title "realretrolabz AIM Manager v0.1.3" \
-  --notes "Terminal manager for AIM 5.9.3861 with versioned Wine DLLs."
+  --title "realretrolabz AIM Manager v0.1.4" \
+  --notes "AIM 5.9.3861 compatibility tools for Linux/Wine and native Windows."
+```
+
+From the Windows build machine, attach the exact EXE and checksum generated
+there:
+
+```powershell
+gh release upload v0.1.4 `
+  .build\windows-exe\rrlzAIM.exe `
+  .build\windows-exe\rrlzAIM.exe.sha256
 ```

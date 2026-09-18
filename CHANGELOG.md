@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.4 - 2026-09-18
 
 - Rename the project to **realretrolabz AIM Manager** and remove the Lutris
   frontend, its release assets, and its validation path. The terminal manager
@@ -23,6 +23,9 @@
   after AIM has actually been removed.
 - Stop terminal setup before downloading an installer when the selected prefix
   already contains AIM, directing users to launch, patch, or uninstall instead.
+- Revise the README with separate Linux/Wine and native Windows support,
+  requirements, installation, and implementation guidance; add the project
+  disclaimer and Open OSCAR Server acknowledgment.
 
 ## 0.1.3 - 2026-09-15
 

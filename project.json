@@ -1,7 +1,7 @@
 {
   "name": "rrlzAIM",
   "display_name": "realretrolabz AIM Manager",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "MIT",
   "supported": {
     "aim": "5.9.3861",
@@ -29,7 +29,7 @@
   "patcher": {
     "entrypoint": "rrlzAIMlinux",
     "manifest": "manifests/aim-5.9.3861.json",
-    "release_artifact": "dist/rrlzAIM-0.1.3-linux.tar.gz",
+    "release_artifact": "dist/rrlzAIM-0.1.4-linux.tar.gz",
     "terminal_engine_artifact": "dist/rrlzAIMlinux.pyz",
     "installer_sources": [
       "local",
