@@ -19,7 +19,7 @@ EOF
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PREFIX="$(realpath -m "$1")"
 
-command=(python3 "$ROOT/aim59" patch-prefix \
+command=(python3 "$ROOT/rrlzAIMlinux" patch-prefix \
     --non-interactive \
     --prefix "$PREFIX")
 

@@ -87,7 +87,7 @@ namespace AIM59Setup
         private readonly TextBox installerPath;
         private readonly Button browseButton;
         private readonly CheckBox removeAolDesktopShortcut;
-        private readonly RadioButton realRetroLabz;
+        private readonly RadioButton realretrolabz;
         private readonly RadioButton keepAIMDefault;
         private readonly RadioButton customServer;
         private readonly TextBox serverHost;
@@ -225,14 +225,14 @@ namespace AIM59Setup
             };
             Controls.Add(serverGroup);
 
-            realRetroLabz = new RadioButton
+            realretrolabz = new RadioButton
             {
                 AutoSize = true,
                 Checked = true,
                 Location = new Point(16, 26),
                 Text = "Use aim.realretrolabz.com:5190"
             };
-            serverGroup.Controls.Add(realRetroLabz);
+            serverGroup.Controls.Add(realretrolabz);
 
             keepAIMDefault = new RadioButton
             {
@@ -459,9 +459,9 @@ namespace AIM59Setup
         private InstallRequest BuildServerRequest()
         {
             InstallRequest request = new InstallRequest();
-            if (realRetroLabz.Checked)
+            if (realretrolabz.Checked)
             {
-                request.ServerMode = ServerMode.RealRetroLabz;
+                request.ServerMode = ServerMode.realretrolabz;
                 request.ServerHost = NativeWorkflow.DefaultServerHost;
                 request.ServerPort = NativeWorkflow.DefaultServerPort;
             }
@@ -501,7 +501,7 @@ namespace AIM59Setup
             }
             if (request.ServerMode == ServerMode.Keep)
             {
-                ShowInputWarning("Keep AIM's original server setting makes no change. Choose RealRetroLabz or a custom server to apply a setting.");
+                ShowInputWarning("Keep AIM's original server setting makes no change. Choose realretrolabz or a custom server to apply a setting.");
                 return;
             }
 
@@ -710,7 +710,7 @@ namespace AIM59Setup
             installerPath.Enabled = enabled && localInstaller.Checked;
             browseButton.Enabled = enabled && localInstaller.Checked;
             removeAolDesktopShortcut.Enabled = enabled;
-            realRetroLabz.Enabled = enabled;
+            realretrolabz.Enabled = enabled;
             keepAIMDefault.Enabled = enabled;
             customServer.Enabled = enabled;
             serverHost.Enabled = enabled && customServer.Checked;

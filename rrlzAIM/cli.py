@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -15,8 +16,12 @@ from .backends import (
     select_backend_target,
 )
 from .backends.base import (
+    DEFAULT_AIM_SERVER_HOST,
+    DEFAULT_AIM_SERVER_PORT,
+    AimServerSettings,
     BackendError,
     CompatibilityBackend,
+    SetupConfiguration,
     SetupPresentation,
     WinePrefixBackend,
 )
@@ -28,6 +33,8 @@ from .download import (
     terminal_progress,
 )
 from .manifest import ManifestError, load_manifest, repository_root
+from .managed_prefixes import ManagedPrefix, ManagedPrefixCatalog
+from .manager import InstallerChoice, ManagerOperations, TerminalManager
 from .orchestration import run_doctor, run_launch, run_rollback, run_setup
 
 
@@ -35,12 +42,20 @@ class PatcherError(RuntimeError):
     pass
 
 
+def default_aim_prefix_root() -> Path:
+    """Return the selected AIM data directory, not the Wine child directory."""
+    configured = os.environ.get("AIMwineprefix")
+    if configured:
+        return Path(configured).expanduser().resolve()
+    return Path.home() / ".local/share/rrlzAIM"
+
+
 def default_prefix() -> Path:
-    return Path.home() / ".local/share/aim59-compat/prefix"
+    return default_aim_prefix_root() / "prefix"
 
 
 def default_cache() -> Path:
-    return Path.home() / ".cache/aim59-compat/installers"
+    return Path.home() / ".cache/rrlzAIM/installers"
 
 
 def default_dll() -> Path:
@@ -65,9 +80,106 @@ def print_banner(manifest: dict[str, Any]) -> None:
         for value in manifest["wine"]["version_prefixes"]
     ]
     print()
-    print("AIM 5.9 Compatibility Patcher")
+    print("rrlzAIMlinux")
     print(f"Target: {manifest['name']} {manifest['version']} / Wine {' or '.join(versions)}")
     print()
+
+
+def _server_settings(host: str, port: int) -> AimServerSettings:
+    try:
+        return AimServerSettings(host, port)
+    except (AttributeError, ValueError) as exc:
+        raise PatcherError(str(exc)) from exc
+
+
+def _prompt_server_port() -> int:
+    value = input(f"Server port [{DEFAULT_AIM_SERVER_PORT}]: ").strip()
+    if not value:
+        return DEFAULT_AIM_SERVER_PORT
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise PatcherError("Server port must be a whole number from 1 through 65535") from exc
+
+
+def choose_server_settings(*, allow_keep: bool = True) -> AimServerSettings | None:
+    print("AIM server:")
+    print(f"  1. Use {DEFAULT_AIM_SERVER_HOST}:{DEFAULT_AIM_SERVER_PORT}")
+    if allow_keep:
+        print("  2. Keep AIM's existing server setting")
+        print("  3. Use another server")
+    else:
+        print("  2. Use another server")
+    choice = input("Choice [1]: ").strip() or "1"
+    if choice == "1":
+        return _server_settings(DEFAULT_AIM_SERVER_HOST, DEFAULT_AIM_SERVER_PORT)
+    if allow_keep and choice == "2":
+        return None
+    if choice == ("3" if allow_keep else "2"):
+        host = input("Server host: ").strip()
+        return _server_settings(host, _prompt_server_port())
+    raise PatcherError(f"Unknown choice: {choice}")
+
+
+def resolve_server_settings(
+    args: argparse.Namespace,
+    *,
+    prompt_if_unspecified: bool,
+    allow_keep: bool = True,
+) -> AimServerSettings | None:
+    mode = args.server
+    host = args.server_host
+    port = args.server_port
+
+    if mode is None:
+        if host is not None or port is not None:
+            raise PatcherError("--server-host and --server-port require --server custom")
+        return (
+            choose_server_settings(allow_keep=allow_keep)
+            if prompt_if_unspecified
+            else None
+        )
+
+    if mode == "keep":
+        if host is not None or port is not None:
+            raise PatcherError("--server keep cannot be combined with --server-host or --server-port")
+        return None
+
+    if mode == "realretrolabz":
+        if host is not None or port is not None:
+            raise PatcherError(
+                "--server realretrolabz cannot be combined with --server-host or --server-port"
+            )
+        return _server_settings(DEFAULT_AIM_SERVER_HOST, DEFAULT_AIM_SERVER_PORT)
+
+    if mode != "custom":
+        raise PatcherError(f"Unknown AIM server mode: {mode}")
+    if host is None:
+        if not prompt_if_unspecified:
+            raise PatcherError("--server custom requires --server-host")
+        host = input("Server host: ").strip()
+    if port is None:
+        port = _prompt_server_port() if prompt_if_unspecified else DEFAULT_AIM_SERVER_PORT
+    return _server_settings(host, port)
+
+
+def resolve_setup_configuration(args: argparse.Namespace) -> SetupConfiguration:
+    interactive = not args.non_interactive and not args.yes
+    server = resolve_server_settings(args, prompt_if_unspecified=interactive)
+    remove_aol_desktop_shortcut = args.remove_aol_desktop_shortcut
+    if interactive and not remove_aol_desktop_shortcut:
+        answer = input(
+            "Remove 'Free AOL & Unlimited Internet' desktop shortcut after installation? [y/N]: "
+        ).strip().lower()
+        if answer in ("y", "yes"):
+            remove_aol_desktop_shortcut = True
+        elif answer not in ("", "n", "no"):
+            raise PatcherError("Please answer yes or no for AOL desktop shortcut cleanup")
+    return SetupConfiguration(
+        server=server,
+        remove_aol_desktop_shortcut=remove_aol_desktop_shortcut,
+        create_xdg_launcher=not args.no_xdg_launcher,
+    )
 
 
 def choose_installer_source(manifest: dict[str, Any]) -> tuple[str, str]:
@@ -172,11 +284,22 @@ def acquire_installer(args: argparse.Namespace, manifest: dict[str, Any]) -> Pat
     return installer
 
 
-def wine_options_from_args(args: argparse.Namespace) -> WineBackendOptions:
-    prefix = path_value(args.prefix) if args.prefix else default_prefix()
+def wine_options_from_args(
+    args: argparse.Namespace,
+    *,
+    prefix: Path | None = None,
+) -> WineBackendOptions:
+    if prefix is not None:
+        resolved_prefix = prefix
+    elif args.prefix and args.aim_prefix:
+        raise PatcherError("--prefix cannot be combined with --aim-prefix")
+    elif args.aim_prefix:
+        resolved_prefix = path_value(args.aim_prefix) / "prefix"
+    else:
+        resolved_prefix = path_value(args.prefix) if args.prefix else default_prefix()
     patched_dll = path_value(args.patched_dll) if args.patched_dll else default_dll()
     return WineBackendOptions(
-        prefix,
+        resolved_prefix,
         patched_dll,
         auto_select_patched_dll=not bool(args.patched_dll),
         wine=args.wine,
@@ -211,6 +334,7 @@ def command_setup(
     run_setup(
         backend,
         acquire_installer=lambda: acquire_installer(args, manifest),
+        configure=lambda: backend.configure_setup(resolve_setup_configuration(args)),
         confirm=lambda presentation: confirm_setup(
             presentation,
             assume_yes=args.yes,
@@ -218,6 +342,59 @@ def command_setup(
         ),
     )
     return 0
+
+
+def command_manage(args: argparse.Namespace, manifest: dict[str, Any]) -> int:
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        raise PatcherError(
+            "The rrlzAIMlinux manager needs an interactive terminal. Use a direct subcommand instead."
+        )
+    if args.prefix or args.aim_prefix:
+        raise PatcherError(
+            "The manager selects only recorded locations. Use --prefix or --aim-prefix "
+            "with a direct subcommand instead."
+        )
+
+    def backend_for(entry: ManagedPrefix) -> WinePrefixBackend:
+        return create_wine_backend(
+            manifest,
+            wine_options_from_args(args, prefix=entry.prefix),
+        )
+
+    def install(
+        root: Path,
+        configuration: SetupConfiguration,
+        installer_choice: InstallerChoice,
+    ) -> None:
+        backend = create_wine_backend(
+            manifest,
+            wine_options_from_args(args, prefix=root / "prefix"),
+        )
+        installer_args = argparse.Namespace(
+            installer=installer_choice.value if installer_choice.mode == "installer" else None,
+            installer_url=(
+                installer_choice.value if installer_choice.mode == "installer_url" else None
+            ),
+            source=installer_choice.value if installer_choice.mode == "source" else None,
+            non_interactive=False,
+            cache_dir=args.cache_dir,
+            allow_unverified=False,
+            dry_run=args.dry_run,
+        )
+        run_setup(
+            backend,
+            acquire_installer=lambda: acquire_installer(installer_args, manifest),
+            configure=lambda: backend.configure_setup(configuration),
+            confirm=lambda _: None,
+        )
+
+    operations = ManagerOperations(
+        default_root=default_aim_prefix_root,
+        normalize_root=ManagedPrefixCatalog.normalize_root,
+        install=install,
+        backend=backend_for,
+    )
+    return TerminalManager(operations).run()
 
 
 def command_patch_prefix(
@@ -229,6 +406,54 @@ def command_patch_prefix(
     backend.check_tools(require_winetricks=False)
     backend.apply()
     print("✓ Existing AIM prefix patched")
+    return 0
+
+
+def command_set_server(
+    args: argparse.Namespace,
+    manifest: dict[str, Any],
+    backend: WinePrefixBackend,
+) -> int:
+    print_banner(manifest)
+    backend.check_tools(require_winetricks=False)
+    settings = resolve_server_settings(
+        args,
+        prompt_if_unspecified=not args.non_interactive,
+        allow_keep=False,
+    )
+    if settings is None:
+        raise PatcherError(
+            "set-server needs realretrolabz or a custom server; 'keep' makes no change"
+        )
+    print("Close AIM before applying this setting.")
+    backend.set_server(settings)
+    print(
+        "✓ AIM server setting applied. Saving AIM's own Server settings dialog can overwrite it."
+    )
+    return 0
+
+
+def command_uninstall(
+    args: argparse.Namespace,
+    manifest: dict[str, Any],
+    backend: WinePrefixBackend,
+) -> int:
+    print_banner(manifest)
+    backend.check_tools(require_winetricks=False, enforce_version=False)
+    if args.non_interactive and not (args.yes or args.dry_run):
+        raise PatcherError("Noninteractive uninstall requires --yes")
+    if not (args.yes or args.dry_run):
+        answer = input(
+            "Run AIM's uninstaller, then permanently remove this Wine prefix and "
+            "the project-owned application-menu entry? [y/N]: "
+        ).strip().lower()
+        if answer not in ("y", "yes"):
+            raise PatcherError("Uninstall cancelled")
+    backend.uninstall()
+    if args.dry_run:
+        print("✓ AIM uninstall plan displayed")
+    else:
+        print("✓ AIM was uninstalled and its Wine prefix was removed")
     return 0
 
 
@@ -287,6 +512,13 @@ def command_verify_installer(args: argparse.Namespace, manifest: dict[str, Any])
 def add_backend_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--prefix", help=f"Wine prefix (default: {default_prefix()})")
     parser.add_argument(
+        "--aim-prefix",
+        help=(
+            "AIM data directory; its Wine prefix is the fixed 'prefix' child "
+            f"(default: {default_aim_prefix_root()})"
+        ),
+    )
+    parser.add_argument(
         "--patched-dll",
         help="Path to the patched mciwave DLL matching the detected Wine version",
     )
@@ -297,14 +529,45 @@ def add_backend_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--dry-run", action="store_true", help="Print actions without changing the prefix")
 
 
+def add_server_arguments(
+    parser: argparse.ArgumentParser,
+    *,
+    allow_keep: bool = True,
+) -> None:
+    modes = ("realretrolabz", "keep", "custom") if allow_keep else (
+        "realretrolabz",
+        "custom",
+    )
+    parser.add_argument(
+        "--server",
+        choices=modes,
+        help=(
+            "AIM server choice: realretrolabz, keep, or custom"
+            if allow_keep
+            else "AIM server choice: realretrolabz or custom"
+        ),
+    )
+    parser.add_argument("--server-host", help="Custom AIM server host")
+    parser.add_argument(
+        "--server-port",
+        type=int,
+        help=f"Custom AIM server port (default: {DEFAULT_AIM_SERVER_PORT})",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="aim59",
+        prog="rrlzAIMlinux",
         description="Install and patch AIM 5.9.3861 for Wine 9.0 or 10.0",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--manifest", type=path_value, help="Alternate version manifest")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers = parser.add_subparsers(dest="command")
+
+    manage = subparsers.add_parser("manage", help="Open the guided terminal manager")
+    manage.add_argument("--cache-dir", help="Downloaded-installer cache directory")
+    add_backend_arguments(manage)
+    manage.set_defaults(handler=command_manage, backend_scope="manager")
 
     setup = subparsers.add_parser("setup", help="Create a prefix, install AIM, and apply fixes")
     source = setup.add_mutually_exclusive_group()
@@ -315,6 +578,17 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--allow-unverified", action="store_true", help="Allow an unknown installer checksum")
     setup.add_argument("--yes", action="store_true", help="Accept the setup confirmation")
     setup.add_argument("--non-interactive", action="store_true", help="Disable prompts")
+    setup.add_argument(
+        "--no-xdg-launcher",
+        action="store_true",
+        help="Do not create the project-owned XDG AIM launcher",
+    )
+    add_server_arguments(setup)
+    setup.add_argument(
+        "--remove-aol-desktop-shortcut",
+        action="store_true",
+        help="Remove the exact optional AOL desktop shortcut after installation",
+    )
     add_backend_arguments(setup)
     setup.set_defaults(handler=command_setup, backend_scope="shared")
 
@@ -335,6 +609,35 @@ def build_parser() -> argparse.ArgumentParser:
     patch_prefix.add_argument("--non-interactive", action="store_true", help=argparse.SUPPRESS)
     add_backend_arguments(patch_prefix)
     patch_prefix.set_defaults(handler=command_patch_prefix, backend_scope="wine")
+
+    set_server = subparsers.add_parser(
+        "set-server", help="Set AIM's server preference in an existing Wine prefix"
+    )
+    add_server_arguments(set_server, allow_keep=False)
+    set_server.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Require --server instead of prompting",
+    )
+    add_backend_arguments(set_server)
+    set_server.set_defaults(handler=command_set_server, backend_scope="wine")
+
+    uninstall = subparsers.add_parser(
+        "uninstall",
+        help="Run AIM's uninstaller, then remove its Wine prefix",
+    )
+    uninstall.add_argument(
+        "--yes",
+        action="store_true",
+        help="Confirm removal of the Wine prefix without prompting",
+    )
+    uninstall.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Require --yes unless only previewing with --dry-run",
+    )
+    add_backend_arguments(uninstall)
+    uninstall.set_defaults(handler=command_uninstall, backend_scope="wine")
 
     doctor = subparsers.add_parser("doctor", help="Check an AIM Wine prefix")
     add_backend_arguments(doctor)
@@ -365,10 +668,18 @@ def main(
     host_platform: str | None = None,
 ) -> int:
     parser = build_parser()
-    args = parser.parse_args(argv)
+    raw_arguments = list(sys.argv[1:] if argv is None else argv)
+    if not raw_arguments:
+        raw_arguments = ["manage"]
+    args = parser.parse_args(raw_arguments)
     try:
         manifest = load_manifest(args.manifest)
         backend_scope = getattr(args, "backend_scope", None)
+        if backend_scope == "manager":
+            target = select_backend_target(build_target, host_platform=host_platform)
+            if target is not BackendTarget.WINE:
+                raise BackendError("The rrlzAIMlinux manager is available only in the Wine build")
+            return int(args.handler(args, manifest))
         if backend_scope == "shared":
             target = select_backend_target(
                 build_target,
@@ -390,9 +701,14 @@ def main(
                 host_platform=host_platform,
             )
             if target is not BackendTarget.WINE:
-                raise BackendError("patch-prefix is available only in the Wine build")
+                raise BackendError(
+                    f"{args.command} is available only in the Wine build"
+                )
             backend = create_wine_backend(manifest, wine_options_from_args(args))
             return int(args.handler(args, manifest, backend))
+        if getattr(args, "handler", None) is None:
+            parser.print_help()
+            return 2
         return int(args.handler(args, manifest))
     except (BackendError, DownloadError, ManifestError, PatcherError) as exc:
         print(f"error: {exc}", file=sys.stderr)

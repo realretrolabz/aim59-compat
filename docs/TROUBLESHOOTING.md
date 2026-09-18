@@ -1,5 +1,28 @@
 # Troubleshooting
 
+## Setup says AIM is already installed
+
+The manager intentionally refuses to adopt a selected directory that already
+contains a `prefix` child. It never scans for or takes ownership of an older
+Wine installation. Direct setup also refuses to run over a prefix that already
+contains `aim.exe`, preventing a later Winetricks or installer step from
+stalling or overwriting the existing copy.
+
+Use one of these commands instead. Omitting `--prefix` uses the managed default
+prefix, `~/.local/share/rrlzAIM/prefix`:
+
+```bash
+./rrlzAIMlinux launch
+./rrlzAIMlinux patch-prefix
+./rrlzAIMlinux uninstall
+```
+
+If this was a deliberately custom prefix, add its exact path, for example
+`--prefix "$HOME/.wine-aim59"`.
+
+`uninstall` runs AIM's uninstaller and permanently deletes that prefix only
+after the uninstaller succeeds and removes `aim.exe`.
+
 ## AIM never appears / hangs in the background
 
 Confirm `aimapi.dll` is disabled:

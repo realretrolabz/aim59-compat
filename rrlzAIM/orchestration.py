@@ -11,9 +11,12 @@ def run_setup(
     *,
     acquire_installer: Callable[[], Path],
     confirm: Callable[[SetupPresentation], None],
+    configure: Callable[[], None] | None = None,
 ) -> None:
     backend.prepare_setup()
     installer = acquire_installer()
+    if configure is not None:
+        configure()
     presentation = backend.setup_presentation
     confirm(presentation)
     backend.setup(installer)

@@ -13,7 +13,7 @@ in the repository only as archived proof-of-concept and historical validation
 source.
 
 This direction supersedes the earlier thin-EXE/adjacent-PowerShell design. It
-does not alter the released Linux/Wine patcher or the Lutris installer.
+does not alter the released Linux terminal manager.
 
 ## Native workflow
 
@@ -35,7 +35,7 @@ the window; any separately opened AIM installer must then be closed by the user
 and compatibility changes will not finish.
 
 For an OldVersion selection, it preserves the observed form/cookie POST flow,
-downloads to `%LOCALAPPDATA%\AIM59-Compat\installers`, reports byte progress,
+downloads to `%LOCALAPPDATA%\rrlzAIM\installers`, reports byte progress,
 and verifies the pinned 8,715,352-byte SHA-256 identity before launching it. A
 browsed local installer receives the same identity verification. The request
 path explicitly uses TLS 1.2 so a Mono-built EXE does not inherit legacy .NET
@@ -111,8 +111,5 @@ the native EXE is separately guest-tested. The optional fresh-snapshot notes in
 and [TESTING.md](TESTING.md#native-windows-setup) are available if you want to
 repeat the process. Windows 10 has not been tried.
 
-`make verify` has a distinct, known pre-existing failure at the frozen Lutris
-release-package checksum comparison. The Python, shell, and YAML checks run
-before it; source/documentation changes naturally change a rebuilt archive
-while the published v0.1.2 checksum remains frozen. This is a release-policy
-blocker, not a failure caused by the native EXE implementation.
+`make verify` covers the shell, Python manager, release archive, and published
+Wine DLL checks. It has no external frontend checksum gate.

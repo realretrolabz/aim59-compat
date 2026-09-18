@@ -1,9 +1,7 @@
 # Architecture
 
-The terminal patcher is the canonical compatibility engine. Lutris is a
-frontend for discovery, choosing the install location, and launching; it
-delegates the complete setup workflow to the same engine used by the command
-line.
+The terminal manager is the canonical compatibility engine and distribution
+path for Linux.
 
 ```text
 Version manifest + installer source
@@ -34,15 +32,15 @@ required features are defined in
 
 ## Backend boundary and build targets
 
-`aim59_compat/orchestration.py` owns the platform-neutral sequencing for
+`rrlzAIM/orchestration.py` owns the platform-neutral sequencing for
 setup, doctor, launch, and rollback. It depends on the small
-`CompatibilityBackend` protocol in `aim59_compat/backends/base.py`. Setup
+`CompatibilityBackend` protocol in `rrlzAIM/backends/base.py`. Setup
 keeps backend preflight ahead of installer acquisition, then passes the
 verified external installer path to the selected backend. Installer download
 and identity verification do not depend on a backend.
 
-`aim59_compat/backends/__init__.py` selects a backend from the build target and
-rejects a host/target mismatch before constructing it. The current `aim59`
+`rrlzAIM/backends/__init__.py` selects a backend from the build target and
+rejects a host/target mismatch before constructing it. The current `rrlzAIMlinux`
 source and release artifact have a fixed `wine` target and accept the existing
 Wine options; there is intentionally no routine user-facing backend switch.
 The reserved `windows` target is recognized on a Windows host but reports that
@@ -52,7 +50,11 @@ compatibility operation.
 `patch-prefix` remains outside the shared backend contract. It is an explicit
 Wine-prefix adapter and is rejected outside the Wine build. This keeps the
 future native backend from acquiring artificial prefix, Winetricks, patched
-DLL, or Wine registry methods.
+DLL, or Wine registry methods. `set-server` is likewise Wine-specific and
+writes a selected AIM `Host` and `Port` preference without acquiring or running
+the installer. `uninstall` is Wine-specific too: it runs AIM's prefix-local
+uninstaller, confirms that `aim.exe` is gone, then removes only the
+project-owned menu entry and that selected prefix.
 
 ## Version manifest
 
@@ -67,22 +69,31 @@ when the pinned SHA-256 matches.
 
 ## Commands
 
-`aim59 setup` owns the complete terminal workflow: validate Wine 9.0 or 10.0,
-select its matching patched DLL, acquire and verify the installer, create a
-win32 prefix, install `winxp` and
-`mfc40`, run the installer, and invoke the Wine compatibility backend.
+`rrlzAIMlinux` with no subcommand opens the terminal manager. It uses a
+catalog of successful guided installations rather than scanning for prefixes.
+The user selects an AIM data directory and Wine uses its fixed `prefix` child.
+The **Install AIM** action validates Wine, selects the matching DLL, acquires
+and verifies the installer, collects server, AOL-shortcut, and XDG-launcher
+choices, then creates the win32 prefix and invokes the Wine backend.
 
 The existing ordering is preserved: Wine command/version and patched-DLL
 preflight occurs before acquisition, and the selected backend receives the
 installer only after acquisition and checksum verification succeeds.
 
-`aim59 patch-prefix` applies only the compatibility operations to an existing
+`rrlzAIMlinux patch-prefix` applies only the compatibility operations to an existing
 AIM prefix. This is the adapter boundary used by the legacy
 `apply-prefix-fixes.sh` wrapper and remains useful for manual installations.
 
-`aim59 doctor`, `launch`, and `rollback` inspect and manage the resulting
+`rrlzAIMlinux uninstall` requires explicit confirmation (or `--non-interactive
+--yes`). It temporarily restores the patcher-owned `aimapi.dll` rename for
+AIM's uninstaller, waits for Wine's uninstaller processes, verifies that AIM's
+executable is absent, removes the project-owned XDG entry, and recursively
+deletes the selected Wine prefix. An incomplete or cancelled uninstall leaves
+the entry and prefix intact.
+
+`rrlzAIMlinux doctor`, `launch`, and `rollback` inspect and manage the resulting
 prefix. Applied state and the `system.ini` backup live in the prefix under
-`.aim59-compat/`.
+`.rrlzAIM/`.
 
 ## Wine backend
 
@@ -97,7 +108,9 @@ The Wine backend:
 7. updates `system.ini`
 8. extracts AIM's icon from the user's installed executable and writes a
    project-owned XDG application-menu entry
-9. records the applied state for diagnostics and rollback
+9. optionally writes the selected AIM server preference and removes only the
+   exact opt-in AOL desktop shortcut after safely recording its backup
+10. records the applied state for diagnostics and rollback
 
 The system Wine installation is never modified.
 
@@ -105,21 +118,16 @@ The system Wine installation is never modified.
 
 The terminal release archive is the primary standalone distribution. It
 packages an executable copy of the zip application beside the patched DLLs so
-`./aim59 setup` works without assembly or extra path arguments. It also
+`./rrlzAIMlinux` works without assembly or extra path arguments. It also
 includes checksums, licenses, documentation, and the Wine source/build
 materials required for the modified DLL.
 
-The Lutris YAML downloads `aim59-patcher.pyz` and the patched Wine DLL from a
-version-pinned GitHub Release. It uses Lutris file aliases to call `aim59
-setup --source oldversion`; the canonical engine acquires and verifies AIM,
-creates the prefix, runs the installer, and applies the Wine backend.
-
 `scripts/build-patcher.py` packages the Python engine and manifest into the
-self-contained zip application used by both the terminal archive and Lutris.
-It does not contain AIM.
+self-contained zip application used by the terminal archive. It does not
+contain AIM.
 
 The native Windows implementation now lives separately in the
 self-contained C# `windows/AIM59Setup/` source tree; it is not a Python
-backend or a Linux/Lutris release artifact. It may not inherit Wine-specific
+backend or a Linux release artifact. It may not inherit Wine-specific
 fixes. It has been guest-tested on Windows 11; Windows 10 has not been tried.
 See [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md) for its Windows notes.

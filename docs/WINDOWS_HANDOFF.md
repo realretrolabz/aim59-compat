@@ -32,11 +32,11 @@ the SHA-256 pinned in `manifests/aim-5.9.3861.json` before execution.
 
 ## What exists now
 
-- `aim59_compat/download.py` resolves local files, direct HTTP(S) URLs, and
+- `rrlzAIM/download.py` resolves local files, direct HTTP(S) URLs, and
   the OldVersion form download.
-- `aim59_compat/cli.py` owns source selection, verification, and every command,
+- `rrlzAIM/cli.py` owns source selection, verification, and every command,
   but currently constructs `WineBackend` directly.
-- `aim59_compat/backends/wine.py` owns all prefix creation, Wine checks,
+- `rrlzAIM/backends/wine.py` owns all prefix creation, Wine checks,
   installation, patching, diagnostics, launch, and rollback behavior.
 - The version manifest mixes shared installer identity with a `wine` section
   and the Wine-only patched `mciwave.dll` identity.
@@ -121,7 +121,7 @@ Do not treat Wine observations as evidence for native Windows.
 ### 3. Implement the smallest evidence-backed Windows backend
 
 Stage 5 must explicitly choose strict portable mode or installed fallback
-before `aim59_compat/backends/windows.py` is added. A temporary registry
+before `rrlzAIM/backends/windows.py` is added. A temporary registry
 import/export transaction does not qualify as portable. Implement only the
 selected mode and operations supported by discovery. Make every tool-owned
 mutation idempotent, back it up before changing it, record platform-specific

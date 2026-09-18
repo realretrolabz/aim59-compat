@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from aim59_compat.cli import main
+from rrlzAIM.cli import main
 
 
 if __name__ == "__main__":

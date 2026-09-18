@@ -1,40 +1,9 @@
-```text
-                            ████████▓
-                         ▒█████████████
-                        ████░░░░░░░░░████
-                       ███░░░░░░░░░░░░▒███
-                       ██▒░░░░░░░░░░░░░███
-                      ▓██░░░░░░░░░░░░░░███
-                       ███░░░░░░░░░░░░░███
-                       ███░░░░░░░░░░░░███▓
-                        ████░░░░░░░░░███▒
-                      █████████████████
-                    ████░░░░████████      ░█████
-                   ████░░░░░░░░░█████████████████
-                  ████░░░░░░░░░░░░░░░░░░░░░░░░███
-                  ███░░░░░░░░░░░░░░░░░░░░░░░░░███
-                 ███░░░░░░░░░░░░░░░░░░░░░░░░░░▒███
-                 ███░░░░░░░░░░▓███████████████████
-                ███░░░░░░░░░░░███████████████░
-              ████░░░░░░░░░░░░░█████
-            ████░░░░░░░░░░░░░░░░░████
-         ░████░░░░░░░░░░░░░░░░░░░░░████
-   ▒████████░░░░░░░░░░░░░░░░░░░░░░░░████
-████████░░░░░░░░░░░░░▒█████░░░░░░░░░░░███
-███░░░░░░░░░░░░░░░░██████████░░░░░░░░░░███░
- ███░░░░░░░░░░░░░█████    ░████░░░░░░░░░███
- ███░░░░░░░░░███████         ████░░░░░░░░███
- ███████████████▒             ░███░░░░░░░▓███
-  █████████▒                    ███░░░░░░░███
-                                 ███░░░░░████
-                                  █████████
-                                   ███
-```
+![rrlzAIM banner](assets/aimretrolabzbanner.png)
 
-# AIM 5.9 Compatibility Patcher
+# realretrolabz AIM Manager
 
-Run **AOL Instant Messenger 5.9.3861** on Linux with Wine 9.0 through a
-guided terminal installer or a Lutris frontend, or natively on **Windows 11**
+Run **AOL Instant Messenger 5.9.3861** on Linux with Wine 9.0 through the
+guided terminal manager, or natively on **Windows 11**
 with `rrlzAIM.exe`, the realretrolabz AIM Manager setup utility. The repository
 checkout also contains a build-verified Wine 10.0 patch candidate for runtime
 testing.
@@ -42,7 +11,9 @@ testing.
 On Linux, the patcher downloads or accepts the original AIM installer, creates
 an isolated 32-bit Wine prefix, installs the required legacy runtime, and
 applies the prefix-local fixes needed for AIM and repeated notification sounds.
-It does not replace or modify the system Wine installation.
+Its guided terminal flow can also choose AIM's server and opt into removing the
+installer's AOL desktop shortcut. It does not replace or modify the system Wine
+installation.
 
 The Windows 11 utility installs AIM, disables `aimapi.dll`, and configures the
 selected OSCAR server connection.
@@ -95,12 +66,11 @@ prefix. Consult [INSTALL.md](docs/INSTALL.md) for the manual known-good recipe.
 
 ### 1. Terminal release
 
-Download `aim59-compat-0.1.3-linux.tar.gz` from the GitHub Release, then run:
+The terminal release archive contains the manager and versioned Wine DLLs.
+Use the checkout directly while developing:
 
 ```bash
-tar -xzf aim59-compat-0.1.3-linux.tar.gz
-cd aim59-compat-0.1.3
-./aim59 setup
+./rrlzAIMlinux
 ```
 
 The v0.1.3 bundle contains both versioned DLLs and selects the one that matches
@@ -108,13 +78,7 @@ the detected Wine version, so no manual `--patched-dll` argument is required.
 Wine 9.0 remains runtime validated; Wine 10.0 is available as a build-validated
 candidate while its repeated-sound runtime matrix is completed.
 
-### 2. Lutris
-
-Import `aim-5.9.3861.yml` from the GitHub Release or install it from a future
-Lutris.net listing. Lutris downloads the same canonical patcher engine and
-performs setup through its graphical workflow.
-
-### 3. Native Windows
+### 2. Native Windows
 
 `rrlzAIM.exe` (realretrolabz AIM Manager) is a self-contained Windows 11 setup
 utility.
@@ -135,32 +99,45 @@ clean-snapshot checks.
 
 ## Repository quick start
 
-From a repository checkout, start the guided installer:
+From a repository checkout, start the guided terminal manager:
 
 ```bash
-./aim59 setup
+./rrlzAIMlinux
 ```
 
-The patcher asks where the AIM installer should come from:
+The centered manager displays the supplied rrlzAIM header and a DOS-style menu.
+It records only locations it installed itself; it never scans for existing Wine
+prefixes. Choose **Install AIM** to select an AIM data directory, server, AOL
+shortcut cleanup, XDG launcher, and installer source.
 
-1. download AIM 5.9.3861 from the configured OldVersion.com page
-2. select a local `aim593861.exe`
-3. enter another direct HTTP or HTTPS URL
+The selected parent defaults to `~/.local/share/rrlzAIM` (or the value of
+`$AIMwineprefix`). Wine always uses its fixed child directory, `prefix`:
 
-It then shows the prefix and patched DLL paths before making changes.
+```text
+AIM data directory: ~/.local/share/rrlzAIM
+Wine prefix:        ~/.local/share/rrlzAIM/prefix
+```
+
+Guided installation defaults to `realretrolabz` on port `5190`, offers a
+spacebar-toggleable removal of the exact AOL promotional shortcut, and asks
+whether to create an XDG launcher. Declining the launcher leaves launching to
+the manager or a manual Wine command.
+
+If the selected directory already contains a prefix, the manager refuses to
+take ownership of it. Old/manual prefixes are intentionally left alone.
 
 The defaults are:
 
 ```text
-Wine prefix:     ~/.local/share/aim59-compat/prefix
-Installer cache: ~/.cache/aim59-compat/installers
+Wine prefix:     ~/.local/share/rrlzAIM/prefix
+Installer cache: ~/.cache/rrlzAIM/installers
 ```
 
 When setup finishes:
 
 ```bash
-./aim59 doctor
-./aim59 launch
+./rrlzAIMlinux doctor
+./rrlzAIMlinux launch
 ```
 
 ## Noninteractive setup
@@ -168,13 +145,13 @@ When setup finishes:
 Download the pinned installer from the configured archive:
 
 ```bash
-./aim59 setup --source oldversion --yes
+./rrlzAIMlinux setup --source oldversion --yes
 ```
 
 Use an installer already on disk:
 
 ```bash
-./aim59 setup \
+./rrlzAIMlinux setup \
   --installer /path/to/aim593861.exe \
   --yes
 ```
@@ -182,17 +159,17 @@ Use an installer already on disk:
 Download from another URL:
 
 ```bash
-./aim59 setup \
+./rrlzAIMlinux setup \
   --installer-url https://mirror.example/aim593861.exe \
   --yes
 ```
 
-Choose a different Wine prefix:
+Choose a different AIM data directory while retaining its fixed `prefix` child:
 
 ```bash
-./aim59 setup \
+./rrlzAIMlinux setup \
   --source oldversion \
-  --prefix "$HOME/.wine-aim59" \
+  --aim-prefix "$HOME/.local/share/my-aim" \
   --yes
 ```
 
@@ -201,32 +178,92 @@ the complete action plan without creating or changing a prefix with
 `--dry-run`:
 
 ```bash
-./aim59 setup \
+./rrlzAIMlinux setup \
   --source oldversion \
-  --prefix "$HOME/.wine-aim59" \
+  --aim-prefix "$HOME/.local/share/my-aim" \
   --non-interactive \
   --dry-run
 ```
+
+Unattended setup keeps AIM's existing server preference and leaves the AOL
+shortcut alone unless explicitly told otherwise. To apply the realretrolabz
+server and remove the optional installer shortcut:
+
+```bash
+./rrlzAIMlinux setup \
+  --source oldversion \
+  --server realretrolabz \
+  --remove-aol-desktop-shortcut \
+  --yes
+```
+
+For another server, use `--server custom --server-host HOST` and optionally
+`--server-port PORT` (the default port is `5190`).
 
 ## Command reference
 
 | Command | Purpose |
 | --- | --- |
-| `aim59 setup` | Acquire AIM, create a prefix, install it, and apply fixes |
-| `aim59 fetch` | Acquire and verify the AIM installer without installing |
-| `aim59 verify-installer` | Check a local installer's pinned identity |
-| `aim59 sources` | List configured third-party installer sources |
-| `aim59 patch-prefix` | Apply fixes to an existing AIM prefix |
-| `aim59 doctor` | Check the expected files and patch state |
-| `aim59 launch` | Start AIM from the selected prefix |
-| `aim59 rollback` | Restore the prefix-local compatibility backups |
+| `rrlzAIMlinux` | Open the guided terminal manager |
+| `rrlzAIMlinux setup` | Acquire AIM, create a prefix, install it, and apply fixes |
+| `rrlzAIMlinux fetch` | Acquire and verify the AIM installer without installing |
+| `rrlzAIMlinux verify-installer` | Check a local installer's pinned identity |
+| `rrlzAIMlinux sources` | List configured third-party installer sources |
+| `rrlzAIMlinux patch-prefix` | Apply fixes to an existing AIM prefix |
+| `rrlzAIMlinux set-server` | Set AIM's server preference in an existing Wine prefix |
+| `rrlzAIMlinux uninstall` | Run AIM's uninstaller, then remove its Wine prefix |
+| `rrlzAIMlinux doctor` | Check the expected files and patch state |
+| `rrlzAIMlinux launch` | Start AIM from the selected prefix |
+| `rrlzAIMlinux rollback` | Restore the prefix-local compatibility backups |
 
-Run `./aim59 COMMAND --help` for every option.
+Run `./rrlzAIMlinux COMMAND --help` for every option.
+
+### Reapply a server setting
+
+With AIM closed, set the next-launch server without reinstalling:
+
+```bash
+./rrlzAIMlinux set-server --server realretrolabz
+./rrlzAIMlinux set-server --server custom --server-host oscar.example --server-port 5190
+```
+
+The command writes `Host` and `Port` only in AIM's per-prefix current-user
+registry key. Saving AIM's own Server settings dialog can overwrite those
+values, so rerun `set-server` afterwards when needed.
+
+### Uninstall AIM and remove its prefix
+
+Close AIM, then run the destructive cleanup command. With no `--prefix`, it
+targets the managed default prefix, `~/.local/share/rrlzAIM/prefix`:
+
+```bash
+./rrlzAIMlinux uninstall
+```
+
+It restores the patcher-owned `aimapi.dll` rename only long enough for AIM's
+prefix-local `uninstll.exe` to run, waits for the uninstaller's Wine processes,
+then removes the project-owned XDG entry and permanently deletes the complete
+Wine prefix. It proceeds with those final deletions only when the uninstaller
+exits successfully and `aim.exe` is gone. If the uninstaller is cancelled,
+fails, or leaves `aim.exe`, the prefix and XDG entry are left intact and the
+compatibility `aimapi.dll` disablement is restored when possible.
+Deleting the prefix also discards its prefix-local rollback state, including
+any saved AOL shortcut copy.
+
+For automation, use the explicit confirmation flag:
+
+```bash
+./rrlzAIMlinux uninstall --non-interactive --yes
+```
+
+Use `--dry-run` first to display the actions without changing the prefix.
+Only supply `--prefix "$HOME/.wine-aim59"` if you deliberately installed AIM
+in that custom prefix.
 
 ### Download without installing
 
 ```bash
-./aim59 fetch --source oldversion
+./rrlzAIMlinux fetch --source oldversion
 ```
 
 The configured archive copy of `aim593861.exe` is pinned as:
@@ -244,7 +281,7 @@ it.
 Verify an existing installer directly:
 
 ```bash
-./aim59 verify-installer /path/to/aim593861.exe
+./rrlzAIMlinux verify-installer /path/to/aim593861.exe
 ```
 
 An unknown checksum stops by default. `--allow-unverified` exists for an
@@ -256,7 +293,7 @@ check.
 If AIM 5.9.3861 is already installed under `C:\Program Files\AIM`:
 
 ```bash
-./aim59 patch-prefix --prefix "$HOME/.wine-aim59"
+./rrlzAIMlinux patch-prefix --prefix "$HOME/.wine-aim59"
 ```
 
 The prefix must already be 32-bit, use Wine 9.0 or 10.0, have Windows XP mode and
@@ -272,8 +309,8 @@ scripts/apply-prefix-fixes.sh "$HOME/.wine-aim59"
 Commands use the default prefix unless `--prefix` is supplied:
 
 ```bash
-./aim59 doctor --prefix "$HOME/.wine-aim59"
-./aim59 launch --prefix "$HOME/.wine-aim59"
+./rrlzAIMlinux doctor --prefix "$HOME/.wine-aim59"
+./rrlzAIMlinux launch --prefix "$HOME/.wine-aim59"
 ```
 
 `doctor` returns a failure status when required prefix files or the recorded
@@ -283,14 +320,18 @@ patch state are missing. More targeted checks are documented in
 ### Roll back
 
 ```bash
-./aim59 rollback --prefix "$HOME/.wine-aim59"
+./rrlzAIMlinux rollback --prefix "$HOME/.wine-aim59"
 ```
 
 Rollback restores the saved prefix copy of `mciwave.dll`, restores the saved
 `system.ini`, removes the Wine `mciwave` override, and renames
 `aimapi.dll.disabled` back to `aimapi.dll` when possible. It also removes the
-project-owned application-menu entry and extracted icon. It does not uninstall
-AIM, remove the prefix, remove `mfc40`, or unregister `sb.dll`.
+project-owned application-menu entry and extracted icon. If guided setup removed
+the optional AOL desktop shortcut, rollback restores its prefix-backed copy only
+when the target is still absent. It does not reset an AIM server preference,
+uninstall AIM, remove the prefix, remove `mfc40`, or unregister `sb.dll`. Use
+the separate destructive `uninstall` command to run AIM's uninstaller and
+delete the complete prefix.
 
 ## How the patcher works
 
@@ -347,11 +388,12 @@ The Wine backend applies these prefix-local changes:
 | Set MCI and MCI32 WaveAudio mappings | Routes legacy WaveAudio calls correctly |
 | Update `[mci]` in `system.ini` | Preserves the legacy WaveAudio mapping |
 | Install an XDG application entry | Adds AIM to the Linux application menu |
+| Back up selected AOL shortcut | Lets rollback restore an opted-in cleanup safely |
 
 The patcher writes its state and `system.ini` backup under:
 
 ```text
-<prefix>/.aim59-compat/
+<prefix>/.rrlzAIM/
 ```
 
 The patched DLLs are pinned as:
@@ -390,39 +432,13 @@ copy is selected as native. The project does not use the old Windows XP
 See [TECHNICAL.md](docs/TECHNICAL.md) for the detailed investigation and the
 versioned patches in [`patches/`](patches/) for the exact source changes.
 
-## Lutris frontend
-
-Install from the repository's single Lutris definition:
-
-```bash
-lutris -i lutris/aim-5.9.3861.yml
-```
-
-Lutris calls the canonical terminal engine through `aim59 setup --source
-oldversion`. The patcher downloads the pinned AIM installer from the
-unaffiliated OldVersion archive, verifies its SHA-256, checks system Wine 9.0
-or 10.0, selects the matching bundled DLL, creates the win32 prefix, installs
-`winxp` and `mfc40`, runs AIM's installer, and applies the compatibility
-changes. The YAML does not duplicate that workflow.
-
-The YAML downloads one project-owned implementation asset from the versioned
-`v0.1.3` GitHub Release:
-
-- `aim59-compat-0.1.3-linux.tar.gz`
-
-The bundle contains the canonical patcher and the Wine 9.0 and Wine 10.0
-patched DLLs, but it does not contain AIM. During installation, the patcher
-fetches AIM directly from OldVersion into Lutris's temporary installer cache.
-See [lutris/README.md](lutris/README.md) for details.
-
 ## Using the loose patcher assets
 
-The `.pyz` and DLLs remain available as implementation assets. Terminal and
-Lutris users should normally use the complete Linux archive above. To use the
-loose assets directly, place the `.pyz` and both DLLs together and run:
+The `.pyz` and DLLs remain available as implementation assets. To use the loose
+assets directly, place the `.pyz` and both DLLs together and run:
 
 ```bash
-python3 aim59-patcher.pyz setup
+python3 rrlzAIMlinux.pyz setup
 ```
 
 The patcher selects the matching adjacent DLL automatically.
@@ -435,9 +451,9 @@ Run the repository validation suite:
 make verify
 ```
 
-It checks shell syntax, the Lutris YAML, Python patcher tests, the terminal
-release archive, the published PE32 DLL structure and marker, checksums,
-publishable Windows binaries, and diff whitespace.
+It checks shell syntax, Python manager tests, the terminal release archive, the
+published PE32 DLL structure and marker, checksums, publishable Windows
+binaries, and diff whitespace.
 
 Build and verify all release artifacts:
 
@@ -448,11 +464,10 @@ make release
 Output:
 
 ```text
-dist/aim59-compat-0.1.3-linux.tar.gz
-dist/aim59-patcher.pyz
+dist/rrlzAIM-0.1.3-linux.tar.gz
+dist/rrlzAIMlinux.pyz
 dist/mciwave-wine9-x86-aim.dll
 dist/mciwave-wine10-x86-aim.dll
-dist/aim-5.9.3861.yml
 dist/SHA256SUMS
 ```
 
@@ -478,12 +493,11 @@ Build dependencies and the release process are documented in
 
 | Path | Purpose |
 | --- | --- |
-| `aim59` | Repository CLI entry point |
-| `aim59_compat/` | Shared orchestration, canonical Python engine, and Wine backend |
+| `rrlzAIMlinux` | Repository CLI entry point |
+| `rrlzAIM/` | Shared orchestration, canonical Python engine, and Wine backend |
 | `manifests/` | Supported-version and installer identities |
 | `binaries/` | Permitted versioned prebuilt patched Wine DLLs |
 | `patches/` | Corresponding versioned Wine source patches |
-| `lutris/` | Local and release Lutris frontends |
 | `scripts/` | Build, compatibility wrappers, and verification tools |
 | `tests/` | Patcher unit tests |
 | `windows/AIM59Setup/` | Self-contained native Windows setup source |
@@ -492,7 +506,7 @@ Build dependencies and the release process are documented in
 The architecture and future backend boundary are described in
 [ARCHITECTURE.md](docs/ARCHITECTURE.md). The Windows 11 setup is a
 separate self-contained native C# EXE; it does not change the Python/Wine
-backend or Lutris workflow. Its earlier PowerShell proof-of-concept remains
+backend. Its earlier PowerShell proof-of-concept remains
 archived as historical source. Windows 10 has not been tried.
 
 ## Licensing and third parties

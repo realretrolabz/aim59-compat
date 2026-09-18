@@ -23,7 +23,7 @@ def load_manifest(path: Path | None = None) -> dict[str, Any]:
             source = local.read_text(encoding="utf-8")
         else:
             source = (
-                resources.files("aim59_compat")
+                resources.files("rrlzAIM")
                 .joinpath("data/aim-5.9.3861.json")
                 .read_text(encoding="utf-8")
             )

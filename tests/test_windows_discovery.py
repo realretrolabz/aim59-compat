@@ -247,8 +247,8 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
         self.assertRegex(
             source,
             re.compile(
-                r"if \(realRetroLabz\.Checked\)\s*\{\s*"
-                r"request\.ServerMode = ServerMode\.RealRetroLabz;",
+                r"if \(realretrolabz\.Checked\)\s*\{\s*"
+                r"request\.ServerMode = ServerMode\.realretrolabz;",
                 re.DOTALL,
             ),
         )
@@ -352,7 +352,7 @@ class WindowsDiscoveryKitStaticTests(unittest.TestCase):
                 self.assertIn("native", documentation.lower())
         self.assertIn("Optional Pre-AIM thumb-drive checks", self.install_documentation)
         self.assertIn("used successfully in a Windows 11 guest", self.install_documentation)
-        self.assertIn("pre-existing", self.exe_handoff)
+        self.assertIn("no external frontend checksum gate", self.exe_handoff)
         self.assertIn("## Windows utility asset", self.release_documentation)
         self.assertIn("rrlzAIM.exe.sha256", self.release_documentation)
         self.assertIn("install-aim59.ps1", self.release_documentation)

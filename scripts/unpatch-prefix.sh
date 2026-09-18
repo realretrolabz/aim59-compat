@@ -9,4 +9,4 @@ fi
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PREFIX="$(realpath -m "$1")"
 
-exec python3 "$ROOT/aim59" rollback --prefix "$PREFIX"
+exec python3 "$ROOT/rrlzAIMlinux" rollback --prefix "$PREFIX"

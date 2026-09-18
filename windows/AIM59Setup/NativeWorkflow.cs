@@ -20,7 +20,7 @@ namespace AIM59Setup
 
     internal enum ServerMode
     {
-        RealRetroLabz,
+        realretrolabz,
         Keep,
         Custom
     }
@@ -189,7 +189,7 @@ namespace AIM59Setup
 
             string cacheDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "AIM59-Compat",
+                "rrlzAIM",
                 "installers");
             string installerPath = Path.Combine(cacheDirectory, InstallerFileName);
             if (File.Exists(installerPath))
@@ -352,7 +352,7 @@ namespace AIM59Setup
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.CookieContainer = cookies;
-            request.UserAgent = "aim59-compat/0.2";
+            request.UserAgent = "rrlzAIM/0.2";
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             return request;
         }
@@ -627,10 +627,10 @@ namespace AIM59Setup
                 return;
             }
 
-            string host = request.ServerMode == ServerMode.RealRetroLabz
+            string host = request.ServerMode == ServerMode.realretrolabz
                 ? DefaultServerHost
                 : request.ServerHost;
-            int port = request.ServerMode == ServerMode.RealRetroLabz
+            int port = request.ServerMode == ServerMode.realretrolabz
                 ? DefaultServerPort
                 : request.ServerPort;
             if (String.IsNullOrWhiteSpace(host))

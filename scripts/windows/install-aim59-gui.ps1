@@ -139,12 +139,12 @@ $serverGroup.Location = [System.Drawing.Point]::new(18, 220)
 $serverGroup.Size = [System.Drawing.Size]::new(480, 145)
 $form.Controls.Add($serverGroup)
 
-$realRetro = [System.Windows.Forms.RadioButton]::new()
-$realRetro.Text = 'Use aim.realretrolabz.com:5190'
-$realRetro.Checked = $true
-$realRetro.AutoSize = $true
-$realRetro.Location = [System.Drawing.Point]::new(16, 26)
-$serverGroup.Controls.Add($realRetro)
+$realretrolabz = [System.Windows.Forms.RadioButton]::new()
+$realretrolabz.Text = 'Use aim.realretrolabz.com:5190'
+$realretrolabz.Checked = $true
+$realretrolabz.AutoSize = $true
+$realretrolabz.Location = [System.Drawing.Point]::new(16, 26)
+$serverGroup.Controls.Add($realretrolabz)
 
 $keepDefault = [System.Windows.Forms.RadioButton]::new()
 $keepDefault.Text = "Keep AIM's original server setting"
@@ -256,7 +256,7 @@ function Start-BackendProcess {
 }
 
 $installButton.Add_Click({
-    $mode = 'RealRetroLabz'
+    $mode = 'realretrolabz'
     $serverHost = $null
     $serverPort = 5190
     if ($keepDefault.Checked) {

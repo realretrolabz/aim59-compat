@@ -3,7 +3,8 @@
 ## Project purpose
 
 This repository provides a terminal-first compatibility patcher for running
-**AOL Instant Messenger 5.9.3861** under Wine, plus a Lutris frontend.
+**AOL Instant Messenger 5.9.3861** under Wine through the terminal-first
+realretrolabz AIM Manager.
 
 The repository must never host or redistribute AOL/AIM program files. The
 patcher may acquire the installer from a user-selected local path or
@@ -62,14 +63,13 @@ played one sound and then caused AIM to hang.
    modified Wine binary is distributed.
 4. Do not silently change the supported Wine version.
 5. Preserve an unpatch/restore path.
-6. Keep Lutris scripts aligned with current Lutris installer syntax.
-7. Direct Connection / Rendezvous is network-dependent and is not a client
+6. Direct Connection / Rendezvous is network-dependent and is not a client
    compatibility release blocker.
-8. Installer downloads belong in the user's external cache, never in the
+7. Installer downloads belong in the user's external cache, never in the
    repository, release assets, fixtures, or Git history.
-9. The terminal patcher is the canonical implementation. Lutris and legacy
-   shell entry points must delegate prefix patching to it rather than duplicate
-   the compatibility operations.
+8. The terminal manager is the canonical implementation. Legacy shell entry
+   points must delegate prefix patching to it rather than duplicate the
+   compatibility operations.
 
 ## Required validation before committing
 
@@ -108,7 +108,6 @@ Confirm no proprietary AIM binary has entered the repository.
 A change is complete only when:
 
 - shell scripts pass `bash -n`
-- YAML parses successfully
 - Python patcher tests pass
 - repository guard finds no AIM binaries
 - tracked patched DLL matches `checksums/SHA256SUMS`

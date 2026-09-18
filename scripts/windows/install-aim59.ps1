@@ -22,7 +22,7 @@ Run from an elevated Windows PowerShell session. The installer is interactive.
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Install')]
 param(
     [Parameter(ParameterSetName = 'Install')]
-    [ValidateSet('Prompt', 'RealRetroLabz', 'Keep', 'Custom')]
+    [ValidateSet('Prompt', 'realretrolabz', 'Keep', 'Custom')]
     [string]$ServerMode = 'Prompt',
 
     [Parameter(ParameterSetName = 'Install')]
@@ -33,7 +33,7 @@ param(
 
     [Parameter(ParameterSetName = 'Install')]
     [ValidateNotNullOrEmpty()]
-    [string]$InstallerCache = (Join-Path $env:LOCALAPPDATA 'AIM59-Compat\installers'),
+    [string]$InstallerCache = (Join-Path $env:LOCALAPPDATA 'rrlzAIM\installers'),
 
     [Parameter(ParameterSetName = 'Install')]
     [ValidateNotNullOrEmpty()]
@@ -145,7 +145,7 @@ function Invoke-OldVersionDownload {
     $request.ContentType = 'application/x-www-form-urlencoded'
     $request.ContentLength = $requestBody.Length
     $request.Referer = $InstallerPageUrl
-    $request.UserAgent = 'aim59-compat/0.2'
+    $request.UserAgent = 'rrlzAIM/0.2'
 
     $requestStream = $null
     $response = $null
@@ -224,7 +224,7 @@ function Get-VerifiedInstaller {
     }
 
     New-Item -ItemType Directory -Path $CacheDirectory -Force | Out-Null
-    $page = Invoke-WebRequest -Uri $InstallerPageUrl -SessionVariable oldVersionSession -Headers @{ 'User-Agent' = 'aim59-compat/0.2' }
+    $page = Invoke-WebRequest -Uri $InstallerPageUrl -SessionVariable oldVersionSession -Headers @{ 'User-Agent' = 'rrlzAIM/0.2' }
     $form = Get-OldVersionDownloadForm -Html $page.Content
     $downloadUri = [Uri]::new([Uri]$InstallerPageUrl, $form.Action).AbsoluteUri
     $temporaryPath = "$installerPath.part"
@@ -384,7 +384,7 @@ function Get-AimServerChoice {
     )
 
     switch ($Mode) {
-        'RealRetroLabz' {
+        'realretrolabz' {
             return [pscustomobject]@{ Apply = $true; Host = $DefaultServerHost; Port = $DefaultServerPort }
         }
         'Keep' {

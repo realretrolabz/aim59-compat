@@ -2,8 +2,27 @@
 
 ## Unreleased
 
+- Rename the project to **realretrolabz AIM Manager** and remove the Lutris
+  frontend, its release assets, and its validation path. The terminal manager
+  is the sole supported Linux workflow.
+- Rename the Linux command to `rrlzAIMlinux` and add its centered DOS-style
+  terminal manager with the supplied rrlzAIM header.
+- Add catalog-only management of successful guided installations. The manager
+  selects an AIM data directory whose Wine prefix is always its `prefix` child;
+  it never scans for or adopts existing Wine prefixes.
+- Add guided XDG-launcher choice and shortcut management, per-prefix XDG
+  entries, managed-location selection, diagnostics, and confirmed uninstall.
 - Lead the native Windows instructions with the verified GitHub Release EXE,
   while retaining source builds as an optional contributor workflow.
+- Add guided Wine-prefix server selection and an explicit `set-server` terminal
+  action for realretrolabz or a custom AIM OSCAR endpoint.
+- Add a default-off Wine-prefix cleanup for the exact optional `Free AOL &
+  Unlimited Internet.lnk` user/Public desktop shortcut.
+- Add an explicitly confirmed Wine-prefix `uninstall` command that runs AIM's
+  local uninstaller, removes the project XDG entry, and deletes the prefix only
+  after AIM has actually been removed.
+- Stop terminal setup before downloading an installer when the selected prefix
+  already contains AIM, directing users to launch, patch, or uninstall instead.
 
 ## 0.1.3 - 2026-09-15
 

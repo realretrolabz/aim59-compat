@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import BinaryIO, Callable
 
 
-USER_AGENT = "aim59-compat/0.1"
+USER_AGENT = "rrlzAIM/0.1"
 MAX_INSTALLER_SIZE = 64 * 1024 * 1024
 
 

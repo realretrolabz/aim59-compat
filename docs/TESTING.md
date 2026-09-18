@@ -4,17 +4,26 @@
 
 Run against a fresh prefix created from the documented installer.
 
-- [ ] `aim59 fetch --source oldversion` downloads the pinned installer
+- [ ] `rrlzAIMlinux fetch --source oldversion` downloads the pinned installer
 - [ ] downloaded installer SHA-256 matches the version manifest
-- [ ] `aim59 setup` completes from a fresh terminal-created prefix
-- [ ] terminal release archive extracts and runs as `./aim59 setup`
+- [ ] `rrlzAIMlinux` completes a fresh guided installation
+- [ ] terminal release archive extracts and runs as `./rrlzAIMlinux`
 - [ ] terminal release automatically selects its adjacent patched DLL
 - [ ] AIM appears in the desktop application menu with its extracted icon
 - [ ] application-menu entry launches the configured prefix
+- [ ] guided terminal setup defaults to realretrolabz, accepts a Custom host,
+  and uses port `5190`; direct custom-port validation rejects invalid ports
+- [ ] `rrlzAIMlinux set-server` updates the selected prefix's `Host` and `Port` with
+  AIM closed and does not run an installer
+- [ ] `rrlzAIMlinux uninstall` requires confirmation, runs AIM's prefix-local
+  uninstaller with AIM closed, waits for it to finish, and removes the
+  project-owned XDG entry and prefix only after `aim.exe` is absent
+- [ ] cancelling or failing that uninstaller leaves the XDG entry and prefix
+  intact, including the compatibility `aimapi.dll` disablement when applicable
+- [ ] on a clean prefix, the default-off AOL cleanup removes only the exact
+  `Free AOL & Unlimited Internet.lnk` from the Wine user/Public Desktop when
+  selected; Favorites, Start Menu, and the XDG AIM launcher remain intact
 - [ ] terminal release archive contains no AOL/AIM binaries
-- [ ] Lutris downloads both project assets from the versioned GitHub Release
-- [ ] Lutris delegates successfully to `setup --source oldversion`
-
 - [ ] AIM 5.9.3861 installs
 - [ ] AIM launches
 - [ ] AIM signs into an Open OSCAR server
@@ -124,7 +133,7 @@ project; the EXE verifies it before use.
 - [ ] On separate clean-snapshot runs, test a fresh OldVersion download and a
   browsed local original installer. Confirm visible byte progress for the new
   download and clear download/identity errors when applicable.
-- [ ] On separate clean-snapshot runs, test RealRetroLabz, Keep, and Custom
+- [ ] On separate clean-snapshot runs, test realretrolabz, Keep, and Custom
   host/port choices. Complete AIM's ordinary interactive installer. Confirm
   details report the wait for stable installed `aim.exe` and `aimapi.dll`, even
   when the original installer launcher exits early.
@@ -135,7 +144,7 @@ project; the EXE verifies it before use.
 - [ ] After a reported success, confirm the observed
   `aimapi.dll.aim59-disabled` state, then use **Restore aimapi.dll**. Confirm it
   restores only the tool-owned file and leaves the server preference unchanged.
-- [ ] With AIM closed, test **Apply server setting** for RealRetroLabz and a
+- [ ] With AIM closed, test **Apply server setting** for realretrolabz and a
   Custom host/port. Confirm it changes only the server values and does not
   launch an installer. Saving AIM's own Server settings page should overwrite
   that external value; reapply the EXE setting and record the next-launch
@@ -154,11 +163,3 @@ source. It completed one direct Windows guest install and restore, including
 the two-second polling/eight-second stable-file completion workaround. It is
 not part of the active EXE workflow, does not need to be copied to the thumb
 drive.
-
-Before v0.1.3, `make verify` reached a known frozen-v0.1.2 Lutris
-release-package checksum gate after its shell, YAML, and Python checks. That
-was release metadata drift, not a native-EXE failure. The v0.1.3 Lutris file
-pins the checksum of the archive built from its matching source tag. `make
-verify` now validates working-tree release structure without comparing it to a
-frozen published asset; `make release` performs that strict checksum comparison
-before publishing.

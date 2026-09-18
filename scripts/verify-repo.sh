@@ -9,11 +9,8 @@ while IFS= read -r -d '' f; do
     bash -n "$f"
 done < <(find scripts -maxdepth 1 -type f -name '*.sh' -print0)
 
-echo "Checking Lutris YAML..."
-python3 scripts/validate-yaml.py
-
 echo "Checking Python patcher..."
-python3 -m compileall -q aim59_compat scripts tests
+python3 -m compileall -q rrlzAIM scripts tests
 python3 -m unittest discover -s tests
 
 echo "Checking release package..."

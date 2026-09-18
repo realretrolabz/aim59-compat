@@ -1,4 +1,4 @@
-.PHONY: verify verify-binary build build-wine9 build-wine10 patcher release yaml checksums
+.PHONY: verify verify-binary build build-wine9 build-wine10 patcher release checksums
 
 verify:
 	./scripts/verify-repo.sh
@@ -20,10 +20,7 @@ patcher:
 
 release: patcher
 	python3 scripts/build-release.py
-	python3 scripts/verify-release.py --require-published-bundle-checksum
-
-yaml:
-	python3 scripts/validate-yaml.py
+	python3 scripts/verify-release.py
 
 checksums:
 	./scripts/update-checksums.sh

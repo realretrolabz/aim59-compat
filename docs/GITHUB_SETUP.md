@@ -17,7 +17,7 @@ git commit -m "Initial AIM 5.9 Wine compatibility scaffold"
 Example:
 
 ```bash
-gh repo create aim59-compat --public --source=. --remote=origin --push
+gh repo create rrlzAIM --public --source=. --remote=origin --push
 ```
 
 Change visibility/name as desired.
@@ -27,8 +27,7 @@ Change visibility/name as desired.
 ```text
 Read AGENTS.md and all docs before making changes.
 
-Audit the starter repository for correctness against current Lutris installer
-syntax and the documented versioned Wine AIM sound fixes.
+Audit the repository against the documented versioned Wine AIM sound fixes.
 
 Do not add any AOL/AIM binaries.
 Do not change the supported AIM or Wine versions without the required validation.

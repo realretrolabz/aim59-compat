@@ -76,7 +76,7 @@ obtained and kept outside the repository.
    preference belong to the account that accepts elevation.
 2. Select one installer source:
    - **Download the verified installer from OldVersion.com** downloads to
-     `%LOCALAPPDATA%\AIM59-Compat\installers` and verifies it.
+     `%LOCALAPPDATA%\rrlzAIM\installers` and verifies it.
    - **Use a local original AIM 5.9.3861 installer** opens a file picker; the
      EXE verifies the selected file before using it.
 3. Select one server choice:
@@ -102,7 +102,7 @@ and cannot be selected for this workflow.
 
 ## Reapply a server setting
 
-The **Apply server setting** button applies the selected RealRetroLabz or
+The **Apply server setting** button applies the selected realretrolabz or
 Custom host/port without downloading or reinstalling AIM. Close AIM first; the
 new value is intended for its next launch.
 
@@ -152,7 +152,7 @@ AIM files, screen names, and other private evidence outside Git.
    separately supplied local original installer. For the OldVersion test,
    confirm visible byte progress and a clear identity/download error if one
    occurs.
-4. On separate clean-snapshot runs, exercise RealRetroLabz, Keep, and Custom
+4. On separate clean-snapshot runs, exercise realretrolabz, Keep, and Custom
    host/port. Confirm the stable-file wait appears after the original installer
    launches and complete the ordinary installer window.
    On one such run, opt into the AOL shortcut cleanup and confirm it removes
@@ -161,7 +161,7 @@ AIM files, screen names, and other private evidence outside Git.
 5. After a reported success, confirm the observed
    `aimapi.dll.aim59-disabled` state. Use **Restore aimapi.dll**, then confirm
    `aimapi.dll` returns and the server preference is unchanged by restore.
-6. With AIM closed, set RealRetroLabz or Custom and choose **Apply server
+6. With AIM closed, set realretrolabz or Custom and choose **Apply server
    setting**. Confirm the registry value changes without launching an
    installer. Then deliberately save AIM's own Server settings page and confirm
    it overwrites the registry value; reapply the EXE setting and record the

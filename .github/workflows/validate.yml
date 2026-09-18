@@ -18,7 +18,7 @@ jobs:
     - name: Install validation tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y shellcheck binutils file python3-yaml
+        sudo apt-get install -y shellcheck binutils file
 
     - name: ShellCheck
       run: shellcheck scripts/*.sh

@@ -1,19 +1,5 @@
 # References
 
-## Lutris
-
-Current installer documentation:
-
-https://github.com/lutris/lutris/blob/master/docs/installers.rst
-
-Relevant current features used by this project include:
-
-- local installer root metadata and `script:` wrapper
-- `$CACHE` for downloaded installer assets
-- installer-file aliases such as `$aim59_patcher`
-- `execute` commands
-- DLL overrides such as `n,b`
-
 ## AIM installer archive
 
 The optional `oldversion` source resolver uses this unaffiliated third-party

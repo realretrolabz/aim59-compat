@@ -11,32 +11,24 @@ git diff --check
 
 Confirm there are no AOL/AIM binaries in Git history or the working tree.
 
-Review `lutris/aim-5.9.3861.yml` and confirm that its versioned GitHub URLs
-match the release tag.
-
-`make verify` validates the archive built from the working tree. After a
-release, normal documentation or source commits can legitimately produce a
-different unpublishable archive while the Lutris file continues to pin the
-immutable published asset. `make release` additionally requires the generated
-archive checksum to match the checksum declared in the Lutris file; run it as
-the final pre-publish gate from the intended release commit.
+`make verify` validates the archive built from the working tree. Run it from
+the exact commit intended for publication, then review `dist/SHA256SUMS` before
+uploading release assets.
 
 ## Release assets
 
 For v0.1.3, upload the complete payload produced by `make release`:
 
 ```text
-aim59-compat-0.1.3-linux.tar.gz
-aim59-patcher.pyz
+rrlzAIM-0.1.3-linux.tar.gz
+rrlzAIMlinux.pyz
 mciwave-wine9-x86-aim.dll
 mciwave-wine10-x86-aim.dll
-aim-5.9.3861.yml
 SHA256SUMS
 ```
 
-The archive is the user-facing terminal distribution and the asset consumed by
-the Lutris YAML. The `.pyz` and loose DLLs are retained as implementation
-assets. Do not publish AIM itself.
+The archive is the user-facing terminal distribution. The `.pyz` and loose
+DLLs are retained as implementation assets. Do not publish AIM itself.
 
 The GitHub Release should also link to the repository source at the matching
 tag so the modified Wine binary's corresponding patch/build instructions are
@@ -74,7 +66,7 @@ not need `install-aim59.ps1` beside it.
 Example:
 
 ```bash
-git tag -a v0.1.3 -m "AIM 5.9 Wine compatibility v0.1.3"
+git tag -a v0.1.3 -m "realretrolabz AIM Manager v0.1.3"
 git push origin v0.1.3
 ```
 
@@ -84,12 +76,11 @@ Create the release only after the tag and release assets have been reviewed.
 
 ```bash
 gh release create v0.1.3 \
-  dist/aim59-compat-0.1.3-linux.tar.gz \
-  dist/aim59-patcher.pyz \
+  dist/rrlzAIM-0.1.3-linux.tar.gz \
+  dist/rrlzAIMlinux.pyz \
   dist/mciwave-wine9-x86-aim.dll \
   dist/mciwave-wine10-x86-aim.dll \
-  dist/aim-5.9.3861.yml \
   dist/SHA256SUMS \
-  --title "AIM 5.9 Compatibility v0.1.3" \
-  --notes "Terminal patcher for AIM 5.9.3861 with versioned Wine DLLs."
+  --title "realretrolabz AIM Manager v0.1.3" \
+  --notes "Terminal manager for AIM 5.9.3861 with versioned Wine DLLs."
 ```
