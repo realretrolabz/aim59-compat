@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/aimretrolabzbanner.png" alt="realretrolabz AIM Manager" width="80%" />
+  <img src="assets/aimretrolabzbanner.png" alt="realretrolabz AIM Manager" width="100%" />
 </p>
 
 # realretrolabz AIM Manager
